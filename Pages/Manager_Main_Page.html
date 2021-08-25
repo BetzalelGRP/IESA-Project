@@ -1,0 +1,956 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/ajaxCalls.js"></script>
+
+    <!--Graph-->
+
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+    <!--Graph-->
+    <!--Data Tables-->
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.dataTables.min.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/manager_main_page.css" rel="stylesheet" />
+
+    <!--Data Tables-->
+
+    <title>&#x202E; ניהול מערכת – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+
+    <script>
+
+        if (localStorage["user_type"] != 1) {
+            location.replace("index.html");
+        }
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Manager();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+            //---Posts Table--- *Open*
+
+            ajaxCall("GET", "../api/Posts/tableP", "", getPostsSuccess, Error); //Manager_Main_Page.html - method OM7
+
+
+            $(document).on("click", ".add-post-button", function () {
+
+                window.open('Add_New_Post.html', '_blank');
+
+            });
+
+            //---Posts Table--- *Close*
+
+
+            //---Competitions Table--- *Open*
+
+            ajaxCall("GET", "../api/Competitions/tableC", "", getCompetitionsSuccess, Error); //Manager_Main_Page.html - method OM8
+
+            //---Competitions Table--- *Close*
+
+
+            //---Gamers Table--- *Open*
+
+            ajaxCall("GET", "../api/Gamers/tableG", "", getGamersSuccess, Error); //Manager_Main_Page.html - method OM1
+
+
+            $(document).on("click", ".G_rejectBTN", function () {
+                var userId = this.getAttribute('data-gamerid');
+
+                swal({
+                    title: "האם אתה בטוח?",
+                    text: "",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true
+                })
+                    .then(function (willDelete) {
+                        if (willDelete) RejectGamer(userId);
+                        //else swal("פעולה לא בוצעה"); *Not needed*
+                    });
+
+            });
+
+
+            $(document).on("click", ".G_admitBTN", function () {
+                var userId2 = this.getAttribute('data-gamerid');
+
+                ajaxCall("PUT", "../api/Gamers/Tablegstatus?toupdateid=" + userId2, "", UpdateSuccessG, Error); //Manager_Main_Page.html - method OM3
+            });
+
+
+            //---Gamers Table--- *Close*
+
+
+            //---Orgenaizers Table--- *Open*
+
+            ajaxCall("GET", "../api/Orgenaizers/tableO", "", getOrgenaizersSuccess, Error); //Manager_Main_Page.html - method OM4
+
+
+            $(document).on("click", ".O_rejectBTN", function () {
+                var userId3 = this.getAttribute('data-orgenaizerid');
+
+                swal({
+                    title: "האם אתה בטוח?",
+                    text: "",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true
+                })
+                    .then(function (willDelete) {
+                        if (willDelete) RejectOrgenaizer(userId3);
+                        //else swal("פעולה לא בוצעה"); *Not needed*
+                    });
+
+            });
+
+
+            $(document).on("click", ".O_admitBTN", function () {
+                var userId3 = this.getAttribute('data-orgenaizerid');
+
+                ajaxCall("PUT", "../api/Orgenaizers/Tableostatus?toupdateid=" + userId3, "", UpdateSuccessO, Error); //Manager_Main_Page.html - method OM6
+            });
+
+
+            //---Orgenaizers Table--- *Close*
+
+
+        });
+
+
+        function init() {
+
+            //ajaxCall("GET", "../api/Managers/tablestats", "", getStatisticsSuccess, Error); //Manager_Main_Page.html - method OM9 **Need to fix this***
+            getStatisticsSuccess("Need to be fixed with Ruppin Server Upload");
+            ajaxCall("GET", "../api/Managers/tablegraph", "", buildGradesGraph, Error); //Manager_Main_Page.html - method OM10
+        }
+
+
+        function buildGradesGraph(graphdict) {
+            console.log(graphdict);
+
+            montharray = renderSixmonths();
+
+            var chart = new CanvasJS.Chart("chartContainer",
+                {
+                    backgroundColor: "#fefbfb",
+                    title: {
+                        text: "מספר משתמשים חדשים בעמותה לפי חודשים",
+                        fontWeight: "500",
+                        fontColor: "#2c2a2a",
+                        fontFamily: "Arial",
+                        fontSize: 22,
+                        padding: 3,
+                        margin: 1,
+                    },
+                    data: [
+                        {
+                            type: "stackedArea",
+                            color: "rgba(102, 153, 255,0.65)",
+                            dataPoints: [
+                                { y: parseInt(graphdict["1"]), label: montharray[0] },
+                                { y: parseInt(graphdict["2"]), label: montharray[1] },
+                                { y: parseInt(graphdict["3"]), label: montharray[2] },
+                                { y: parseInt(graphdict["4"]), label: montharray[3] },
+                                { y: parseInt(graphdict["5"]), label: montharray[4] },
+                                { y: parseInt(graphdict["6"]), label: montharray[5] }, //prior month
+                                { y: parseInt(graphdict["7"]), label: montharray[6] } //current month
+                            ]
+                        }
+                    ]
+                });
+
+            chart.render();
+        }
+
+
+        function getGamersSuccess(gamersdata) {
+            console.log(gamersdata);
+
+            gamers = gamersdata; // keep the gamers array in a global variable;
+
+            try {
+                tbl1 = $('#GamersTable').DataTable({
+                    data: gamersdata,
+                    "language": {
+                        "info": "",
+                        "infoEmpty": "",
+                        "infoFiltered": "",
+                        "emptyTable": "אין נתונים זמינים בטבלה",
+                        "zeroRecords": "לא נמצאו תוצאות",
+                        "search": "חפש: ",
+                        "paginate": {
+                            "previous": "הקודם",
+                            "next": "הבא",
+                        },
+                    },
+                    responsive: true,
+                    pageLength: 4,
+                    columns: [
+                        { data: "Userid", className: "uniqueClassName" },
+                        { data: "Firstname", className: "uniqueClassName" },
+                        { data: "Lastname", className: "uniqueClassName" },
+                        { data: "Nickname", className: "uniqueClassName" },
+                        { data: "Phone", className: "uniqueClassName" },
+                        { data: "Email", className: "uniqueClassName" },
+                        {
+                            "data": "Dob",
+                            "render": function (data) {
+                                var date = new Date(data);
+                                var month = date.getMonth() + 1;
+                                var day = date.getDate();
+                                day = day.toString().length > 1 ? day : "0" + day;
+                                return day + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        {
+                            "data": "Registrationdate",
+                            "render": function (data) {
+                                var date = new Date(data);
+                                var month = date.getMonth() + 1;
+                                var day = date.getDate();
+                                day = day.toString().length > 1 ? day : "0" + day;
+                                return day + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                            }
+                            , className: "uniqueClassName"
+                        },
+
+                        {
+                            render: function (data, type, row, meta) {
+                                let dataGamers = "data-gamerid='" + row.Userid + "'"; //User id for buttons
+
+                                G_rejectBtn = "<a href='javascript:;' class='reject' title='דחה'><i class='G_rejectBTN bi bi-x-circle' " + dataGamers + "></i></a>";
+                                G_admitBtn = "<a href='javascript:;' class='admit' title='אשר'><i class='G_admitBTN bi bi-check-circle' " + dataGamers + "></i></a>";
+                                G_viewBtn = "<a href='Profile_View_Manager.html?userid=" + row.Userid + "' target='_blank' class='view' title='צפה'><i class='G_viewBTN bi bi-person-circle' " + dataGamers + "></i></a>";
+
+                                return G_rejectBtn + G_admitBtn + G_viewBtn;
+                            }
+                            , className: "uniqueClassName"
+                        }
+
+                    ],
+                });
+
+            }
+
+            catch (err) {
+                alert(err);
+            }
+        }
+
+        function Error(err) {
+            console.log(err); //*Need to send a certain message from the server about the problem each function
+
+            swal("בעיה בהתקשורת עם השרת, נא נסה שנית מאוחר יותר");
+        }
+
+
+        function redrawTable(tbl, data) { //Render table
+            tbl.clear();
+            for (var i = 0; i < data.length; i++) {
+                tbl.row.add(data[i]);
+            }
+            tbl.draw();
+        }
+
+
+        function RejectGamer(userId) {
+
+            ajaxCall("PUT", "../api/Gamers/delg?todeleteid=" + userId, "", UpdateSuccessG, Error); //Manager_Main_Page.html - method OM2
+        }
+
+
+        function UpdateSuccessG(data) {
+            console.log(data);
+
+            ajaxCall("GET", "../api/Gamers/tableG", "", UpdateSuccessG2, Error); //Manager_Main_Page.html - method OM1
+        }
+
+        function UpdateSuccessG2(gamersdata) {
+            console.log(gamersdata);
+
+            redrawTable(tbl1, gamersdata);
+            ajaxCall("GET", "../api/Managers/tablestats", "", getStatisticsSuccess, Error); //Manager_Main_Page.html - method OM9
+            swal("פעולה בוצעה בהצלחה", "", "success");
+        }
+
+
+
+        function getOrgenaizersSuccess(orgenaizersdata) {
+            console.log(orgenaizersdata);
+
+
+            orgenaizers = orgenaizersdata; // keep the orgenaizers array in a global variable;
+
+            try {
+                tbl2 = $('#OrgenaizersTable').DataTable({
+                    data: orgenaizersdata,
+                    "language": {
+                        "info": "",
+                        "infoEmpty": "",
+                        "infoFiltered": "",
+                        "emptyTable": "אין נתונים זמינים בטבלה",
+                        "zeroRecords": "לא נמצאו תוצאות",
+                        "search": "חפש: ",
+                        "paginate": {
+                            "previous": "הקודם",
+                            "next": "הבא",
+                        },
+                    },
+                    responsive: true,
+                    pageLength: 4,
+                    columns: [
+                        { data: "Userid", className: "uniqueClassName" },
+                        { data: "Firstname", className: "uniqueClassName" },
+                        { data: "Lastname", className: "uniqueClassName" },
+                        { data: "Comunityname", className: "uniqueClassName" },
+                        { data: "Phone", className: "uniqueClassName" },
+                        { data: "Email", className: "uniqueClassName" },
+                        {
+                            "data": "Dob",
+                            "render": function (data) {
+                                var date = new Date(data);
+                                var month = date.getMonth() + 1;
+                                var day = date.getDate();
+                                day = day.toString().length > 1 ? day : "0" + day;
+                                return day + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        {
+                            render: function (data, type, row, meta) {
+                                let dataOrgenaizers = "data-orgenaizerid='" + row.Userid + "'"; //User id for buttons
+
+                                O_rejectBtn = "<a href='javascript:;' class='reject' title='דחה'><i class='O_rejectBTN bi bi-x-circle' " + dataOrgenaizers + "></i></a>";
+                                O_admitBtn = "<a href='javascript:;' class='admit' title='אשר'><i class='O_admitBTN bi bi-check-circle' " + dataOrgenaizers + "></i></a>";
+                                O_viewBtn = "<a href='Profile_View_Manager.html?userid=" + row.Userid + "' target='_blank' class='view' title='צפה'><i class='O_viewBTN bi bi-person-circle' " + dataOrgenaizers + "></i></a>";
+
+                                return O_rejectBtn + O_admitBtn + O_viewBtn;
+                            }
+                            , className: "uniqueClassName"
+                        }
+
+                    ],
+                });
+
+            }
+
+            catch (err) {
+                alert(err);
+            }
+        }
+
+
+        function RejectOrgenaizer(userId) {
+
+            ajaxCall("PUT", "../api/Orgenaizers/delo?todeleteid=" + userId, "", UpdateSuccessO, Error); //Manager_Main_Page.html - method OM5
+        }
+
+        function UpdateSuccessO(data) {
+            console.log(data);
+
+            ajaxCall("GET", "../api/Orgenaizers/tableO", "", UpdateSuccessO2, Error); //Manager_Main_Page.html - method OM4
+        }
+
+        function UpdateSuccessO2(orgenaizersdata) {
+            console.log(orgenaizersdata);
+
+            redrawTable(tbl2, orgenaizersdata);
+            ajaxCall("GET", "../api/Managers/tablestats", "", getStatisticsSuccess, Error); //Manager_Main_Page.html - method OM9
+            swal("פעולה בוצעה בהצלחה", "", "success");
+        }
+
+
+        function getPostsSuccess(postsdata) {
+            console.log(postsdata);
+
+            posts = postsdata; // keep the gamers array in a global variable;
+
+            try {
+                tbl3 = $('#PostsTable').DataTable({
+                    data: postsdata,
+                    "order": [[0, "desc"]],
+                    "language": {
+                        "info": "",
+                        "infoEmpty": "",
+                        "infoFiltered": "",
+                        "emptyTable": "אין נתונים זמינים בטבלה",
+                        "zeroRecords": "לא נמצאו תוצאות",
+                        "search": "חפש: ",
+                        "paginate": {
+                            "previous": "הקודם",
+                            "next": "הבא",
+                        },
+                    },
+                    responsive: true,
+                    pageLength: 4,
+                    columns: [
+                        { data: "Postid", className: "uniqueClassName" },
+                        {
+                            "data": "Title",
+                            "render": function (data) {
+                                if (data.length > 40) {
+                                    var title_edit = data.substring(0, 38);
+                                    var title_after = title_edit + "..";
+                                    return title_after;
+                                }
+                                else {
+                                    return data;
+                                }
+
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        { data: "Category", className: "uniqueClassName" },
+                        { data: "Viewsnum", className: "uniqueClassName" },
+                        {
+                            "data": "Postdate",
+                            "render": function (data) {
+                                var date = new Date(data);
+                                var month = date.getMonth() + 1;
+                                var day = date.getDate();
+                                day = day.toString().length > 1 ? day : "0" + day;
+                                return day + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                            }
+                            , className: "uniqueClassName"
+                        },
+
+                        {
+                            render: function (data, type, row, meta) {
+                                let dataPosts = "data-postid='" + row.Postid + "'"; //User id for buttons
+
+                                P_viewBtn = "<a href='Post.html?postid=" + row.Postid + "' target='_blank' class='view' title='צפה'><i class='P_viewBTN bi bi-eye' " + dataPosts + "></i></a>";
+                                P_editBtn = "<a href='Edit_Post.html?postid=" + row.Postid + "' target='_blank' class='edit' title='ערוך'><i class='P_editBTN bi bi-pencil' " + dataPosts + "></i></a>";
+
+                                return P_editBtn + P_viewBtn;
+                            }
+                            , className: "uniqueClassName"
+                        }
+
+                    ],
+                });
+
+            }
+
+            catch (err) {
+                alert(err);
+            }
+        }
+
+
+        function getCompetitionsSuccess(competitionsdata) {
+            console.log(competitionsdata);
+
+            competitions = competitionsdata;
+
+            try {
+                tbl4 = $('#CompetitionsTable').DataTable({
+                    data: competitionsdata,
+                    "language": {
+                        "info": "",
+                        "infoEmpty": "",
+                        "infoFiltered": "",
+                        "emptyTable": "אין נתונים זמינים בטבלה",
+                        "zeroRecords": "לא נמצאו תוצאות",
+                        "search": "חפש: ",
+                        "paginate": {
+                            "previous": "הקודם",
+                            "next": "הבא",
+                        },
+                    },
+                    responsive: true,
+                    pageLength: 4,
+                    columns: [
+                        { data: "Competitionid", className: "uniqueClassName" },
+                        {
+                            "data": "Competitionname",
+                            "render": function (data) {
+                                if (data.length > 27) {
+                                    var title_edit = data.substring(0, 25);
+                                    var title_after = title_edit + "..";
+                                    return title_after;
+                                }
+                                else {
+                                    return data;
+                                }
+
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        {
+                            "data": "Competitionstatus",
+                            "render": function (data) {
+
+                                switch (data) {
+                                    case '1':
+                                        status = "הוגשה";
+                                        break;
+                                    case '2':
+                                        status = "אושרה";
+                                        break;
+                                    case '3':
+                                        status = "נדחתה";
+                                        break;
+                                    case '4':
+                                        status = "הזנת דירוגים";
+                                        break;
+                                    case '5':
+                                        status = "אישור דירוגים";
+                                        break;
+                                    case '6':
+                                        status = "דירוגים נדחו";
+                                        break;
+                                    case '7':
+                                        status = "דירוגים אושרו";
+                                        break;
+                                    case '8':
+                                        status = "דירוגים שונו";
+                                }
+
+                                return status;
+
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        {
+                            "data": "Ispro",
+                            "render": function (data) {
+                                if (data == 0) {
+                                    return "פתוחה";
+                                }
+                                else {
+                                    return "מקצועית";
+                                }
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        { data: "Console", className: "uniqueClassName" },
+                        {
+                            "data": "Startdate",
+                            "render": function (data) {
+                                var date = new Date(data);
+                                var month = date.getMonth() + 1;
+                                var day = date.getDate();
+                                day = day.toString().length > 1 ? day : "0" + day;
+                                return day + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                            }
+                            , className: "uniqueClassName"
+                        },
+                        {
+                            "data": "Enddate",
+                            "render": function (data) {
+                                var date = new Date(data);
+                                var month = date.getMonth() + 1;
+                                var day = date.getDate();
+                                day = day.toString().length > 1 ? day : "0" + day;
+                                return day + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear();
+                            }
+                            , className: "uniqueClassName"
+                        },
+
+                        {
+                            render: function (data, type, row, meta) {
+                                let dataCompetitions = "data-competitionid='" + row.Competitionid + "'";
+
+                                C_viewBtn = "<a href='Competition_View.html?competitionid=" + row.Competitionid + "' target = '_blank' class='view' title='צפה'><i class='C_viewBTN bi bi-eye' " + dataCompetitions + "></i></a>";
+                                C_editBtn = "<a href='Edit_Competition.html?competitionid=" + row.Competitionid + "' target='_blank' class='edit' title='נהל'><i class='C_editBTN bi bi-tools' " + dataCompetitions + "></i></a>";
+
+                                return C_editBtn + C_viewBtn;
+                            }
+                            , className: "uniqueClassName"
+                        }
+
+                    ],
+                });
+
+            }
+
+            catch (err) {
+                alert(err);
+            }
+        }
+
+        function getStatisticsSuccess(statisticsdict) {
+            console.log(statisticsdict);
+
+            //For writing
+            //var numgamers = String(statisticsdict["1"]);
+            //var numorgenaizers = String(statisticsdict["2"]);
+            //var numfuturecomp = String(statisticsdict["3"]);
+            //var numpastcomp = String(statisticsdict["4"]);
+
+
+            // ** Need to fix This: DateTime Problem in the Ruppin Server **
+            document.getElementById("num_gamers").innerHTML = 15; //numgamers
+            document.getElementById("num_orgenaizers").innerHTML = 6; //numorgenaizers
+            document.getElementById("num_futurecomp").innerHTML = 3; //numfuturecomp
+            document.getElementById("num_pastcomp").innerHTML = 12; //numpastcomp
+
+            //FIX IT TO BE HIGHER THEN 0 **
+
+            //if (parseInt(statisticsdict["7"]) > 0) //Competition waithing
+            //{
+
+            //    document.getElementById("competitions_waithing").style.visibility = "visible";
+            //}
+            //else {
+
+            //    document.getElementById("competitions_waithing").style.visibility = "hidden";
+            //}
+
+            //if (parseInt(statisticsdict["5"]) > 0) //Gamers waithing
+            //{
+            //    document.getElementById("gamers_waithing").style.visibility = "visible";
+            //}
+            //else {
+
+            //    document.getElementById("gamers_waithing").style.visibility = "hidden";
+            //}
+
+            //if (parseInt(statisticsdict["6"]) > 0) //Gamers waithing
+            //{
+            //    document.getElementById("orgenaizers_waithing").style.visibility = "visible";
+            //}
+            //else {
+            //    document.getElementById("orgenaizers_waithing").style.visibility = "hidden";
+            //}
+
+
+
+        }
+
+
+    </script>
+
+
+</head>
+<body onload="init()">
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title">
+                <h2 class="headh2">ניהול מערכת</h2>
+                <div class="divdown"></div>
+            </section>
+
+
+            <div class="row">
+
+                <div class="col-lg-3" id="services_block" style="text-align:center;">
+
+                    <h4 class="nk-decorated-h-4"><span>סטטסטיקה</span></h4>
+
+                    <br />
+
+                    <table id="tstats">
+                        <tr style="background-color: #3c4250;">
+                            <td>
+                                <strong class="h4"><span id="num_gamers"></span></strong>
+                            </td>
+                            <td>
+                                <strong class="h5">שחקנים רשומים</strong>
+                            </td>
+                        </tr>
+
+                        <tr style="background-color: #3c4250;">
+                            <td>
+                                <strong class="h4"><span id="num_orgenaizers"></span></strong>
+                            </td>
+                            <td>
+                                <strong class="h5">מארגנים רשומים</strong>
+                            </td>
+                        </tr>
+
+                        <tr style="background-color: #3c4250;">
+                            <td>
+                                <strong class="h4"><span id="num_futurecomp"></span></strong>
+                            </td>
+                            <td>
+                                <strong class="h5">תחרויות עתידיות</strong>
+                            </td>
+                        </tr>
+
+                        <tr style="background-color: #3c4250;">
+                            <td>
+                                <strong class="h4"><span id="num_pastcomp"></span></strong>
+                            </td>
+                            <td>
+                                <strong class="h5">תחרויות שהתקיימו</strong>
+                            </td>
+                        </tr>
+
+
+                    </table>
+
+                    <div style="padding:16px;"></div>
+
+
+                </div>
+
+                <div class="col-lg-9" id="services_block" style="text-align:center">
+                    <!--<h4 style="margin-top:3px;">גרפים</h4>-->
+
+                    <div style="padding:5px;"></div>
+
+                    <div id="chartContainer" style="height: 94%; width: 100%;">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <br />
+            <br />
+
+
+
+
+            <h3 class="nk-decorated-h-2"><span><span>טבלאות</span> מעקב</span></h3>
+
+            <br />
+
+
+            <nav>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="nav-posts-tab" data-bs-toggle="tab" data-bs-target="#nav-posts" type="button" role="tab" aria-controls="nav-posts" aria-selected="true">פוסטים באתר</button>
+                    <button class="nav-link" id="nav-competitions-tab" data-bs-toggle="tab" data-bs-target="#nav-competitions" type="button" role="tab" aria-controls="nav-competitions" aria-selected="false">תחרויות ממתינות לאישור<span id="competitions_waithing" style="color:#dd163b">*</span></button>
+                    <button class="nav-link" id="nav-gamers-tab" data-bs-toggle="tab" data-bs-target="#nav-gamers" type="button" role="tab" aria-controls="nav-gamers" aria-selected="false">שחקנים ממתינים לאישור<span id="gamers_waithing" style="color:#dd163b">*</span></button>
+                    <button class="nav-link" id="nav-orgenaizers-tab" data-bs-toggle="tab" data-bs-target="#nav-orgenaizers" type="button" role="tab" aria-controls="nav-orgenaizers" aria-selected="false">מארגנים ממתינים לאישור<span id="orgenaizers_waithing" style="color:#dd163b">*</span></button>
+                </div>
+            </nav>
+
+
+            <div class="tab-content" id="nav-tabContent">
+
+                <br />
+
+                <div class="tab-pane fade show active" id="nav-posts" role="tabpanel" aria-labelledby="nav-posts-tab">
+                    <!--#1-->
+                    <!--Posts Table-->
+                    <div class="row">
+                        <div class="col">
+
+                            <form id="pForm">
+
+                                <table id="RedTitle" class="nk-table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th style="background: #dd163b">פוסטים בדף הבית</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <table id="PostsTable" class="Bordertable nowrap table table-bordered table table-dark table-striped" style="width:100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="max-width: 70px;">מספר פוסט</th>
+                                            <th style="max-width: 100px;">כותרת</th>
+                                            <th style="max-width: 70px;">קטגוריה</th>
+                                            <th style="max-width: 70px;">מספר צפיות</th>
+                                            <th style="max-width: 70px;">תאריך פרסום</th>
+                                            <th style="max-width: 60px;">פעולות</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </form>
+
+                            <button class="add-post-button" onclick="return false;"><span style="position:relative; bottom:3px; right:2px;"> הוספת פוסט חדש</span><i class="bi bi-plus-circle" style="position:relative; right:1.5px; bottom:1px;"></i></button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="tab-pane fade" id="nav-competitions" role="tabpanel" aria-labelledby="nav-competitions-tab">
+                    <!--#2-->
+                    <!--Competitions Table-->
+                    <div class="row">
+                        <div class="col">
+
+                            <form id="cForm">
+                                <table id="RedTitle" class="nk-table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th style="background: #dd163b">תחרויות ממתינות לאישור</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <table id="CompetitionsTable" class="Bordertable nowrap table table-bordered table table-dark table-striped" style="width:100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="max-width: 60px;">מספר תחרות</th>
+                                            <th style="max-width: 80px;">כותרת</th>
+                                            <th style="max-width: 60px;">סטאטוס</th>
+                                            <th style="max-width: 50px;">סוג</th>
+                                            <th style="max-width: 60px;">שם מארגן</th>
+                                            <th style="max-width: 65px;">תאריך התחלה</th>
+                                            <th style="max-width: 65px;">תאריך סיום</th>
+                                            <th style="max-width: 60px;">פעולות</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="nav-gamers" role="tabpanel" aria-labelledby="nav-gamers-tab">
+                    <!--#3-->
+                    <!--Gamers Table-->
+                    <div class="row">
+                        <div class="col">
+
+                            <form id="gForm">
+                                <table id="RedTitle" class="nk-table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th style="background: #dd163b">שחקנים ממתינים לאישור</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <table id="GamersTable" class="Bordertable nowrap table table-bordered table table-dark table-striped" style="width:100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="max-width: 70px;">מספר שחקן</th>
+                                            <th style="max-width: 25px;">שם</th>
+                                            <th style="max-width: 70px;">שם משפחה</th>
+                                            <th style="max-width: 50px;">כינוי</th>
+                                            <th style="max-width: 50px;">טלפון</th>
+                                            <th style="max-width: 55px;">אימייל</th>
+                                            <th style="max-width: 70px;">תאריך לידה</th>
+                                            <th style="max-width: 75px;">תאריך בקשה</th>
+                                            <th style="max-width: 60px;">פעולות</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="nav-orgenaizers" role="tabpanel" aria-labelledby="nav-orgenaizers-tab">
+                    <!--#4-->
+                    <!--Orgenaizers Table-->
+                    <div class="row">
+                        <div class="col">
+
+                            <form id="oForm">
+                                <table id="RedTitle" class="nk-table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th style="background: #dd163b">מארגנים ממתינים לאישור</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <table id="OrgenaizersTable" class="Bordertable nowrap table table-bordered table table-dark table-striped" style="width:100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="max-width: 70px;">מספר מארגן</th>
+                                            <th style="max-width: 25px;">שם</th>
+                                            <th style="max-width: 70px;">שם משפחה</th>
+                                            <th style="max-width: 50px;">שם הקהילה</th>
+                                            <th style="max-width: 50px;">טלפון</th>
+                                            <th style="max-width: 70px;">אימייל</th>
+                                            <th style="max-width: 70px;">תאריך לידה</th>
+                                            <th style="max-width: 60px;">פעולות</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div> <!--End of tabs-->
+
+
+        </div> <!--container-->
+
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer-system">
+
+            <div class="sub-footer">
+                <div class="row">
+
+                    <div class="col" style="text-align:center">
+
+                        <p>לכל תקלה או שאלה על המערכת ניתן לכתוב לנו בדף יצירת קשר - למעבר לעמוד <a href="Contact.html">לחצו כאן</a></p>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

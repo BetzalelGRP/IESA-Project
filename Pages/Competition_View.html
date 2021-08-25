@@ -1,0 +1,391 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/GeneralFunctions.js"></script>
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/competition_preview.css" rel="stylesheet" /> <!--Same as view-->
+
+
+    <title>&#x202E; תחרות – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+    <script>
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Site();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+            var split = window.location.href.split('=');
+            var CId = split[1];
+
+            ajaxCall("GET", "../api/Competitions/getone?CompetitionId=" + CId + "", "", getSuccessC, getErrorC);
+
+
+        });
+
+
+        function getSuccessC(data) {
+            console.log(data);
+            img = data.Banner;
+            let dateLast = data.Lastdateforregistration.split("T");
+            dateLast = dateLast[0].split("-");
+
+            let dateStart = data.Startdate.split("T");
+            dateStart = dateStart[0].split("-");
+
+            let timeStart = data.Startime.split(":");
+
+            let timeEnd = data.Endtime.split(":");
+
+            let startcheckin = data.Startcheckin.split(":");
+
+            let endcheckin = data.Endcheckin.split(":");
+            if ((data.Prize1 == '') || (data.Prize1 == 0) || (data.Prize1 == null)) {
+                document.getElementById("Trophy").style.display = 'none';
+            }
+
+
+            buildimagestr = "<img src='../" + img + "' />";
+            document.getElementById("banner").innerHTML = buildimagestr;
+            $("#title").html("<p id='shadowtitle'><b style='background-color: #dd163b'>" + data.Competitionname + "<b/><p/>");
+
+            let title1 = data.Competitionname; //For title*
+            document.getElementById("comp_name_title").innerHTML = title1;
+
+            $("#discreption").html("<p>" + data.Body + "<p/>");
+            $("#cStartD").append("<br/>" + dateStart[2] + '/' + dateStart[1] + '/' + dateStart[0]);
+            $("#cStartT").append("<br/>" + timeEnd[0] + ':' + timeEnd[1] + " - ");
+            $("#cStartT").append(timeStart[0] + ':' + timeStart[1]);
+            $("#cLastDateR").append("<br/>" + dateLast[2] + '/' + dateLast[1] + '/' + dateLast[0]);
+            $("#prize1").append(data.Prize1);
+            $("#prize2").append(data.Prize2);
+            $("#prize3").append(data.Price3);
+            $("#linkforegistration").html("<a class='btn btn-primary' href=" + data.Linkforregistration + "role='Button'>להרשמה לחצו כאן</a>");
+            $("#cCheckIn").append("<br/>" + endcheckin[0] + ':' + endcheckin[1] + " - ")
+            $("#cCheckIn").append(startcheckin[0] + ':' + startcheckin[1])
+            $("#consoleDIV").append(data.Console);
+            $("#gameCategoryDIV").append(data.Gamecategory);
+            {
+                if (data.Isonline == 1)
+                    document.getElementById("cOnline").innerHTML = "</br> תחרות אונליין";
+                else
+                    document.getElementById("cOnline").innerHTML = "</br>  כתובת: </br>" + data.Address1 + " ";
+            }
+            {
+                if (data.Ispro == 1)
+                    $("#cPro").append("</br> מקצועי")
+                else
+                    $("#cPro").append("</br> חובבנים")
+            }
+            {
+                if (data.Ispayment == 1)
+                    $("#cPayment").append("</br> בתשלום")
+                else
+                    $("#cPayment").append("</br> בחינם")
+            }
+
+        }
+        function getErrorC(err) {
+            console.log(err)
+        }
+
+
+    </script>
+
+
+</head>
+<body>
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title" style="text-align: right !important;">
+                <a class="titlelink" href="index.html">ראשי </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <a class="titlelink" href="Competitions.html">תחרויות </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <h2 class="headh2" id="comp_name_title"></h2>
+                <div class="divdown"></div>
+            </section>
+
+            <div class="row">
+                <div class="bannerimage" id="banner"></div>
+            </div>
+
+            <div class="cName" id="title"></div>
+            <div class="cDisc" id="discreption"></div>
+            <div class="row">
+                <div class="col-lg-9">
+                    <table width="100%" height="100%">
+                        <tr>
+                            <td>
+                                <i class="bi bi-journal-check" style="font-size: 2rem"></i>
+                            </td>
+                            <td id="cLastDateR" class="details">ההרשמה מסתיימת ב:</td>
+                            <td>
+                                <i class="bi bi-calendar2-date" style="font-size: 2rem; color: white;"></i>
+                            </td>
+                            <td id="cStartD" class="details">
+                                תחילת התחרות:
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td><i class="bi bi-clock" style="font-size: 2rem"></i></td>
+                            <td id="cStartT" class="details">
+                                שעות התחרות:
+                            </td>
+                            <td><i class="bi bi-bookmark-check" style="font-size: 2rem"></i></td>
+                            <td id="cCheckIn" class="details">צ'ק אין:</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-controller" style="font-size: 2rem"></i></td>
+                            <td id="cPro" class="details"></td>
+                            <td><i class="bi bi-credit-card-fill" style="font-size: 2rem"></i></td>
+                            <td id="cPayment" class="details"></td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-link" style="font-size: 2rem"></i></td>
+                            <td class="details"><a href="#">דיסקורד</a></td>
+                            <td><i class="bi bi-geo-alt" style="font-size: 2rem"></i></td>
+                            <td id="cOnline" class="details"></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td id="linkforegistration"></td>
+                        </tr>
+                    </table>
+                </div>
+
+
+                <!--<div class="col-lg-3">
+                    <div class="row" id="Trophy" style="background-color: red">
+                        <p>פרסים:</p>
+                        <div class="row troph">
+                            <div class="col">
+                                <i class="bi bi-trophy-fill"></i>
+                            </div>
+                            <div class="col"> 1ST </div>
+                            <div id="prize1" class="col prize1"></div>
+                        </div>
+                        <div class="row troph">
+                            <div class="col"><i class="bi bi-trophy-fill"></i></div>
+                            <div class="col">2ND</div>
+                            <div id="prize2" class="col prize2"></div>
+                        </div>
+                        <div class="row troph">
+                            <div class="col"><i class="bi bi-trophy-fill"></i></div>
+                            <div class="col">3RD</div>
+                            <div id="prize3" class="col prize3"></div>
+                        </div>
+                    </div>
+                    <div class="row" id="consoleDIV">
+                        <p>קונסולה: </p>
+                    </div>
+                    <div class="row" id="gameCategoryDIV">
+                        <p>קטגוריית משחק: </p>
+                    </div>
+
+
+
+                    <div class="row" style="margin-top: 100px;">
+                        <iframe src="https://discordapp.com/widget?id=595235006641864705&amp;theme=dark" width="350" height="400" allowtransparency="true" frameborder="0"></iframe>
+                    </div>
+
+                </div>--> <!--End col 3-->
+
+
+                <div class="col-lg-3">
+
+
+                    <div style="margin-bottom:18px;"></div>
+
+                    <div class="row" id="anotherpostsbox">
+
+                        <div class="row" id="fbbox" style="margin-top:11px; height:350px">
+
+                            <div id="Trophy">
+                                <h5>פרסים</h5>
+                                <div class="row troph">
+                                    <div class="col">
+                                        <i class="bi bi-trophy-fill" style="color: #FFD700"></i>
+                                    </div>
+                                    <div class="col"> 1ST </div>
+                                    <div id="prize1" class="col prize1"></div>
+                                </div>
+                                <div class="row troph">
+                                    <div class="col"><i class="bi bi-trophy-fill" style="color: #decfcf"></i></div>
+                                    <div class="col">2ND</div>
+                                    <div id="prize2" class="col prize2"></div>
+                                </div>
+                                <div class="row troph">
+                                    <div class="col"><i class="bi bi-trophy-fill" style="color: #CD7F32"></i></div>
+                                    <div class="col">3RD</div>
+                                    <div id="prize3" class="col prize3"></div>
+                                </div>
+                            </div>
+                            <div id="consoleDIV">
+                                <h5>קונסולה </h5>
+                            </div>
+                            <div id="gameCategoryDIV" style="margin-bottom: 20px;">
+                                <h5>קטגוריית משחק </h5>
+                            </div>
+
+
+
+
+
+
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="row" style="margin-top: 25px;">
+                        <iframe src="https://discordapp.com/widget?id=595235006641864705&amp;theme=dark" width="350" height="400" allowtransparency="true" frameborder="0"></iframe>
+                    </div>
+
+                </div> <!--End of col-3-->
+
+
+
+
+
+
+
+
+
+            </div>
+
+        </div>
+
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer">
+
+            <div class="sub-footer">
+
+                <div class="row">
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">אודות העמותה</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <p>העמותה לגיימינג תחרותי (ע"ר) היא ארגון לספורט </p>
+                        <p>אלקטרוני בישראל ופועלת ללא מטרות רווח לקידום</p>
+                        <p>ענף הגיימינג התחרותי בישראל.</p>
+
+                        <p style="padding-top: 9px; "><a href="about.html">למדו עוד >></a></p>
+
+                        <div style="margin-bottom: 15px;"></div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">יצירת קשר</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <div class="row">
+
+                            <p>לפניה בכל נושא ניתן לשלוח הודעה בדף המיועד או פניה באמצעות הרשתות החברתיות. </p>
+
+                            <!--<p style="padding-top: 9px;"><a href="about.html">מעבר לעמוד >></a></p>-->
+
+                            <div id="social-media" style="padding-top: 10px; font-size: 21px; margin-bottom: 15px;">
+                                <a href="https://www.youtube.com/channel/UCX98q91JCtTp3gk4gvnGbUQ" target="_blank"><i class="bi bi-youtube" style="color: #f3ebeb"></i></a>
+                                <a href="https://www.linkedin.com/company/19043406" target="_blank"><i class="bi bi-linkedin" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="https://www.facebook.com/IsraelEsports" target="_blank"><i class="bi bi-facebook" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="contact.html"><i class="bi bi-info-circle-fill" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">בשיתוף</h6>
+
+                        <div class="row">
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/iesf-1.png" style="width:60px;">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/maccabi.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/ASA.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/PC.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/MI-3.png" style="width:60px">
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

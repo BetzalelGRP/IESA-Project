@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/post.css" rel="stylesheet" />
+
+    <title>&#x202E; פוסט – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+    <script>
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Site();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+        });
+
+
+        function init() {
+            //var post_id = localStorage["post_id"];
+
+            var split = window.location.href.split('=');
+            var post_id = split[1];
+
+            ajaxCall("GET", "../api/Posts/rendpost?idtoserver=" + post_id, "", getAnotherPosts, Error); //Post.html - method OP3
+        }
+
+        function getAnotherPosts(postobj) {
+            console.log(postobj);
+
+            post = postobj; //Save global integer of post
+
+            ajaxCall("GET", "../api/Posts/rendpost2?postid=" + postobj.Postid + "&categoryname=" + postobj.Category, "", renderPost, Error); //Post.html - method OP4
+        }
+
+
+        function renderPost(postList) {
+            console.log(postList);
+
+
+            strtitle = '';
+            strtitle += "<a class='titlelink' href='index.html'>ראשי </a>";
+
+            strtitle += "<svg style='width: .5em; transform: rotate(180deg); vertical-align: -.17em;' aria-hidden='true' focusable = 'false' data - prefix='fa' data-icon='angle-right' role = 'img' xmlns = 'http://www.w3.org/2000/svg' viewBox = '0 0 256 512' > <path fill='currentColor' d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg >";
+            strtitle += " ";
+            strtitle += "<a class='titlelink' href='Post_Archive.html'>פוסטים </a>";
+            strtitle += "<svg style='width: .5em; transform: rotate(180deg); vertical-align: -.17em;' aria-hidden='true' focusable = 'false' data - prefix='fa' data-icon='angle-right' role = 'img' xmlns = 'http://www.w3.org/2000/svg' viewBox = '0 0 256 512' > <path fill='currentColor' d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg >";
+            strtitle += "<br />";
+            strtitle += "<h2 class='headh2'>" + post.Title + "</h2>";
+
+            //strtitle = '';
+            //strtitle += "<a class='titlelink' href='TemplatePage.html'>ראשי ></a>";
+            //strtitle += "<a class='titlelink' href='TemplatePage.html'>פוסטים ></a><br />";
+            //strtitle += "<h2 class='headh2'>" + post.Title + "</h2>";
+
+            document.getElementById("page_title").innerHTML = strtitle;
+
+            str = '';
+            str += "<div class='row'>";
+            str += "<div class='col-lg-9'>";
+            str += "<img class='imglogo' src='../" + post.Image1 + "' alt='Logo'/>";
+            str += "<div class='row'>";
+            str += "<div class='nk-post-by'>";
+
+            var hebrewdate = renderDate(post.Postdate);
+
+            str += "<span> נכתב על ידי<span style='color:#04b8a5'> מערכת האתר</span>, " + hebrewdate + "</span>";
+            str += "<div class='nk-post-categories'>";
+
+            if (post.Category == "עולמי") {
+                str += "<span class='bg-category-btn'>עולמי</span>";
+                str += " ";
+                str += "<span>כללי</span>";
+            }
+            else {
+                str += "<span>עולמי</span>";
+                str += " ";
+                str += "<span class='bg-category-btn'>כללי</span>";
+            }
+
+            str += "</div>";
+            str += "</div>";
+            str += "</div>";
+            str += "<br />";
+            str += "<p id='pafter'>";
+
+            str += post.Body1;
+
+            str += "</p>";
+
+            if (post.Body2 == null) {
+                str += "";
+            }
+            else {
+                str += "<p id='pafter'>";
+                str += post.Body2;
+                str += "</p>";
+            }
+
+            if (post.Body3 == null) {
+                str += "";
+            }
+            else {
+                str += "<p id='pafter'>";
+                str += post.Body3;
+                str += "</p>";
+            }
+
+            str += "</div>";
+            str += "<div class='col-lg-3'>";
+
+            str += "<div class='row'>";
+            str += "<iframe src='https://discordapp.com/widget?id=595235006641864705&amp;theme=dark' width='350' height='400' allowtransparency='true' frameborder='0'></iframe>";
+            str += "</div>";
+            str += "<div style='margin-bottom:18px;'>";
+            str += "</div>";
+            str += "<div class='row' id='anotherpostsbox'>"
+            str += "<div class='row' id='headeranotherpost'>";
+            str += "<h4 class='headh4'>פוסטים<span style='color: white'><span style='color: transparent'>.</span>נוספים</span></h4>";
+            str += "</div>";
+
+
+            for (i = 0; i < postList.length; i++) {
+
+                str += "<div class='row' id='anotherpimg' style='margin-top: 19px'>";
+                str += "<div class='col' style='padding: 1px'>";
+
+                if (postList[i].Title.length > 45) {
+                    var title_edit = postList[i].Title.substring(0, 43);
+                    var title_after = title_edit + "..";
+
+                    str += "<a class='postlink' href='Post.html?postid=" + postList[i].Postid + "'><p id='panotherpost'>" + title_after + "</p></a>";
+                }
+                else {
+                    str += "<a class='postlink' href='Post.html?postid=" + postList[i].Postid + "'><p id='panotherpost'>" + postList[i].Title + "</p></a>";
+                }
+
+                str += "</div>";
+                str += "<div class='col'>";
+                str += "<a href='Post.html?postid=" + postList[i].Postid + "'><img class='img-fluid' id='imganotherpost' src='../" + postList[i].Image1 + "' alt='Logo'/></a>";
+                str += "</div>";
+                str += "</div>";
+            }
+
+            str += "</div>";
+            str += "</div>";
+            str += "</div>";
+
+            document.getElementById("post_area").innerHTML = str;
+
+        }
+
+        function Error(err) {
+            console.log(err);
+
+            swal("בעיה בהתקשרות עם שרת, נא נסה שנית מאוחר יותר");
+        }
+
+
+    </script>
+
+
+</head>
+<body onload="init()">
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+
+        <div class="container">
+
+            <section id="page_title">
+                <!--From here javascript part 1-->
+            </section>
+
+            <section id="post_area">
+
+            </section> <!--End javascript-->
+
+        </div>
+    </section>
+
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+
+    <section id="site_footer">
+        <div class="footer">
+
+            <div class="sub-footer">
+
+                <div class="row" id="footeralign">
+
+                    <div class="col-md-4">
+
+                        <h6 id="footer-title">אודות העמותה</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <p>העמותה לגיימינג תחרותי (ע"ר) היא ארגון לספורט </p>
+                        <p>אלקטרוני בישראל ופועלת ללא מטרות רווח לקידום</p>
+                        <p>ענף הגיימינג התחרותי בישראל.</p>
+
+                        <p style="padding-top: 9px; "><a href="about.html">למדו עוד >></a></p>
+
+                        <div style="margin-bottom: 15px;"></div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <h6 id="footer-title">יצירת קשר</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <div class="row">
+
+                            <p>לפניה בכל נושא ניתן לשלוח הודעה בדף המיועד או פניה באמצעות הרשתות החברתיות. </p>
+
+                            <!--<p style="padding-top: 9px;"><a href="about.html">מעבר לעמוד >></a></p>-->
+
+                            <div id="social-media" style="padding-top: 10px; font-size: 21px; margin-bottom: 15px;">
+                                <a href="https://www.youtube.com/channel/UCX98q91JCtTp3gk4gvnGbUQ" target="_blank"><i class="bi bi-youtube" style="color: #f3ebeb"></i></a>
+                                <a href="https://www.linkedin.com/company/19043406" target="_blank"><i class="bi bi-linkedin" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="https://www.facebook.com/IsraelEsports" target="_blank"><i class="bi bi-facebook" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="contact.html"><i class="bi bi-info-circle-fill" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">בשיתוף</h6>
+
+                        <div class="row">
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/iesf-1.png" style="width:60px;">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/maccabi.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/ASA.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/PC.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/MI-3.png" style="width:60px">
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

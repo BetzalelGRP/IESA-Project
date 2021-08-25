@@ -1,0 +1,826 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/ajaxCalls.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/sign_up.css" rel="stylesheet" />
+
+    <title>&#x202E; הרשמת משתמשים – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+
+    <script>
+        localStorage.clear();
+
+        var userType; //3 = Gamer | 2 = Orgenaizer
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Site();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+            counterimage = 2300;
+
+            $("#oForm").submit(function (e) {
+                e.preventDefault();
+                f1(2);
+            });
+
+            $("#gForm").submit(function (e) {
+                e.preventDefault();
+                f1(3);
+            });
+
+            $("#gfiles").change(function () {
+                addPreview(3);
+            });
+
+            $("#ofiles").change(function () {
+                addPreview(2);
+            });
+
+        });
+
+
+        function init() { //If the user entered this page while was logged in
+
+            localStorage.clear();
+            user_info = {};
+        }
+
+        function f1(num) {
+            checkEmail(num);
+            return false;
+        }
+
+        function checkEmail(num) {
+
+            userType = num;
+
+            if (userType == 3) {
+                emailAdd = $("#gemailTB").val();
+            }
+            else { //userType == 2
+                emailAdd = $("#oemailTB").val();
+            }
+
+            ajaxCall("GET", "../api/gamers/mark1?emailAdd=" + emailAdd, "", EmailSuccess, EmailError); //method OG1 (Gamers Controllers)
+
+            /* return false;*/ //Prevent the page from being reloaded
+        }
+
+        function EmailSuccess(email) {
+            console.log(email);
+
+            if (email == "exist") {
+                swal("Email Exists, please choose other");
+            }
+
+            else if (email == "not exist") { //Check Nickname
+
+                if (userType == 3) {
+                    nicknameAdd = $("#gnicknameTB").val();
+                }
+                else { //userType == 2
+                    nicknameAdd = $("#onicknameTB").val();
+                }
+
+                ajaxCall("GET", "../api/gamers/mark2?nicknameAdd=" + nicknameAdd, "", NicknameSuccess, NicknameError); //method OG2 (Gamers Controllers)
+
+                return false;
+            }
+        }
+
+        function EmailError(err) {
+            console.log(err);
+
+            alert("Error");
+        }
+
+        function NicknameSuccess(nickname) {
+            console.log(nickname);
+
+            if (nickname == "exist") {
+                swal("This Nickname Exists, please choose other");
+            }
+
+            else if (nickname == "not exist") {
+                getNewId();
+            }
+
+            return false;
+        }
+
+        function NicknameError(err) {
+            console.log(err);
+
+            alert("Error");
+        }
+
+        function getNewId() {
+
+            if (userType == 3) {
+                ajaxCall("GET", "../api/Gamers", "", getSuccessGamer, getErrorGamer); //method OG3
+            }
+            else { //userType == 2
+                ajaxCall("GET", "../api/Orgenaizers", "", getSuccessOrgenaizer, getErrorOrgenaizer); //method OO1
+            }
+
+            return false; //Prevent the page from being reloaded
+        }
+
+        function getSuccessGamer(id3) { //get the id of the new gamer
+            console.log(id3);
+
+            var userid3 = parseInt(id3);
+            addPhoto(userid3);
+
+            return false;
+        }
+
+        function getErrorGamer(err) {
+            console.log(err.responseJSON.ExceptionMessage);
+
+            alert(err.responseJSON.ExceptionMessage);
+        }
+
+        function getSuccessOrgenaizer(id2) { //get the id of the new orgenaizer
+            console.log(id2);
+
+            var userid2 = parseInt(id2);
+            addPhoto(userid2);
+
+            return false;
+        }
+
+        function getErrorOrgenaizer(err) {
+            console.log(err.responseJSON.ExceptionMessage);
+
+            alert(err.responseJSON.ExceptionMessage);
+        }
+
+        function addPhoto(userid) {
+
+            var data = new FormData();
+
+            if (userType == 3) {
+                var files = $("#gfiles").get(0).files;
+            }
+            else { //userType == 2
+                var files = $("#ofiles").get(0).files;
+            }
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("userid", userid); //append what ever data you want to send along with the files.
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../Api/FileUpload",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: routeImage,
+                error: error
+            });
+
+            return false;
+        }
+
+        function routeImage(data) { //Need to remove and change it to preview
+            console.log(data);
+
+            if (userType == 3) {
+                addGamer(data[0]);
+            }
+            else { //userType == 2
+                addOrgenaizer(data[0]);
+            }
+
+            //SAVE data[0] in global intiger and send him when we press on submit***
+            return false;
+        }
+
+        function error(err) {
+            console.log(err);
+
+            alert(err);
+        }
+
+        function addGamer(imageURL) {
+
+            var gradio = $('input[name=radio-gender-g]:checked'); //get gender
+            var ggender = gradio.attr('id');
+
+            GamerObj = {
+                Email: $("#gemailTB").val(),
+                Password1: $("#gpasswordTB").val(),
+                Nickname: $("#gnicknameTB").val(),
+                Firstname: $("#gfirstnameTB").val(),
+                Lastname: $("#glastnameTB").val(),
+                Gender: ggender,
+                Id: $("#gidTB").val(),
+                Phone: $("#gPhoneTB").val(),
+                Dob: $("#gdobTB").val(),
+                Address1: $("#gaddressTB").val(),
+                Discorduser: $("#gdiscorduserTB").val(),
+                Picture: imageURL,
+                Registrationdate: getDate(),
+                License: 0,
+                Status1: 0
+            }
+
+            ajaxCall("POST", "../api/Gamers", JSON.stringify(GamerObj), SuccessGamer, ErrorGamer); //Sign_Up.html - method OG4
+
+            return false;
+        }
+
+        function SuccessGamer(data) {
+            console.log("in Success");
+
+            swal("משתמש נוצר במערכת", "אנא המתן עד לקבלת אישור ממנהלי האתר", "success");
+
+            setTimeout(function () {
+                location.replace("index.html");
+            }, 3500);
+        } //Done creating Gamer User
+
+        function ErrorGamer(err) {
+            console.log(err.responseJSON.ExceptionMessage);
+
+            alert(err.responseJSON.ExceptionMessage); //Message - throw new exception from the server*
+        }
+
+        function addOrgenaizer(imageURL) {
+
+            var oradio = $('input[name=radio-gender-o]:checked'); //get gender
+            var ogender = oradio.attr('id');
+
+            OrgenaizerObj = {
+                Email: $("#oemailTB").val(),
+                Password1: $("#opasswordTB").val(),
+                Nickname: $("#onicknameTB").val(),
+                Firstname: $("#ofirstnameTB").val(),
+                Lastname: $("#olastnameTB").val(),
+                Gender: ogender,
+                Id: $("#oidTB").val(),
+                Phone: $("#oPhoneTB").val(),
+                Dob: $("#odobTB").val(),
+                Address1: $("#oaddressTB").val(),
+                Picture: imageURL,
+                Comunityname: $("#ocomunitynameTB").val(),
+                Linktocommunity: $("#olinktocommunityTB").val(),
+                Status1: 0,
+            }
+
+            ajaxCall("POST", "../api/Orgenaizers", JSON.stringify(OrgenaizerObj), SuccessOrgenaizer, ErrorOrgenaizer); //Sign_Up.html - method OO2
+
+            return false;
+        }
+
+        function SuccessOrgenaizer(data) {
+            console.log("in Success");
+
+            swal("משתמש נוצר במערכת", "אנא המתן עד לקבלת אישור ממנהלי האתר", "success");
+
+            setTimeout(function () {
+                location.replace("index.html");
+            }, 3500);
+        } //Done creating Orgenaizer User
+
+        function ErrorOrgenaizer(err) {
+            console.log(err.responseJSON.ExceptionMessage);
+
+            alert(err.responseJSON.ExceptionMessage); //Message - throw new exception from the server*
+        }
+
+        function addPreview(userType) {
+
+            previewCode = userType; //global integer for next function
+            counterimage = counterimage + 1;
+
+            if (counterimage > 2302) { //Security: User Wont be able to upload more then 3 pictures to the server
+                counterimage = 2300;
+            }
+
+            var data = new FormData();
+
+            if (userType == 3) {
+                var files = $("#gfiles").get(0).files;
+            }
+            else { //userType == 2
+                var files = $("#ofiles").get(0).files;
+            }
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("userid", counterimage); //append what ever data you want to send along with the files.
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../Api/FileUpload",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: imagePreview,
+                error: error
+            });
+
+            return false;
+        }
+
+        function imagePreview(data) {
+
+            var imgStr = "";
+
+            if (Array.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    imgStr = "<img src='../" + data[i] + "' class='rounded-circle' alt='Cinque Terre' width='100' height='100'/>"; //instead of +=
+                }
+            }
+
+
+            else {
+                imgStr = "<img src='../" + data + "'/>";
+            }
+
+            if (previewCode == 3) {
+                document.getElementById("gph").innerHTML = imgStr;
+            }
+            else {
+                document.getElementById("oph").innerHTML = imgStr;
+            }
+
+        }
+
+
+    </script>
+
+
+</head>
+
+<body onload="init()">
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title">
+                <a class="titlelink" href="index.html">ראשי </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <h2 class="headh2">הרשמה לעמותה</h2>
+                <div class="divdown"></div>
+            </section>
+
+
+            <nav>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">הרשם כשחקן</button>
+                    <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">הרשם כמארגן</button>
+                </div>
+            </nav>
+
+            <div class="tab-content" id="nav-tabContent">
+
+                <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                    <h3 style="color:#f3113b; padding-top: 5px;">טופס הרשמה - שחקן</h3>
+
+                    <div>
+                        <p><b>רישום שחקן לעמותה תקף לשנה מקנה לשחקן את ההטבות הבאות:</b></p>
+                        <ul>
+                            <li>קידום ענף הגיימינג התחרותי בישראל ע"י תמיכה בארגון המקצועי הרשמי בתחום</li>
+                            <li>
+                                היכולת להשתתף בטורנירים וליגות בפיקוח העמותה, <span>
+                                    <strong>לרבות אליפות ישראל ומוקדמות אליפות העולם</strong>
+                                </span>
+                            </li>
+                            <li>קבלת הזמנות לאירועים, מבצעים מיוחדים של שותפים והטבות נוספות כשחקן רשום בעמותה</li>
+                            <li>
+                                <strong><a href="../Pages/Ranks.html" style="text-decoration: none; color: #04b8a5">צבירת ניקוד</a> לדירוג העונתי</strong>
+                            </li>
+                            <li>הטבות נוספות כפי שיקבע מעת לעת ע"י העמותה</li>
+                        </ul><p style="text-align: center;">
+
+                    </div>
+
+                    <h4 style="padding-bottom:7px; padding-top:5px;">טופס הרשמה</h4>
+
+                    <form id="gForm" class="was-validated">
+                        <div class="row">
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label for="fname">שם פרטי:</label>
+                                    <input type="text" class="form-control" placeholder="שם פרטי" id="gfirstnameTB" pattern=".{2,15}"
+                                           oninvalid="this.setCustomValidity('שם חייב להכיל בין 2-15 תווים')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>שם משפחה:</label>
+                                    <input type="text" class="form-control" placeholder="שם משפחה" id="glastnameTB" pattern=".{2,15}"
+                                           oninvalid="this.setCustomValidity('שם משפחה חייב להכיל בין 2-15 תווים')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>כינוי:</label>
+                                    <input type="text" class="form-control" placeholder='הכינוי שלך בעמותה' id="gnicknameTB"
+                                           pattern="^[a-zA-Z]{2,15}$"
+                                           oninvalid="this.setCustomValidity('אנא הכנס כינוי בין 2-15 אותיות ללא מספרים')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>תאריך לידה:</label>
+                                    <input type="date" class="form-control" id="gdobTB" oninvalid="this.setCustomValidity('אנא הכנס תאריך לידה תקין')" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div>
+                                    <label>תעודת זהות:</label>
+                                    <input type="text" class="form-control" placeholder="מכיל 8-9 ספרות" id="gidTB" pattern=".{8,9}"
+                                           oninvalid="this.setCustomValidity('מספר תעודת זהות חייב להכיל 8 או 9 ספרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+
+                                <br />
+
+                                <label>מגדר:</label>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="gMale" name="radio-gender-g" required>
+                                    <label class="form-check-label" for="validationFormCheck1">זכר</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="gFemale" name="radio-gender-g" required>
+                                    <label class="form-check-label" for="validationFormCheck2">נקבה</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="gNone" name="radio-gender-g" required>
+                                    <label class="form-check-label" for="validationFormCheck3">מעדיף לא לומר</label>
+                                </div>
+
+                            </div>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>כתובת דוא"ל:</label>
+                                    <input type="email" class="form-control" placeholder='הכנס כתובת דוא"ל כאן' id="gemailTB" pattern="^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$" oninvalid="this.setCustomValidity('Format should be syntax@email.com')" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>סיסמא:</label>
+                                    <input type="password" class="form-control" placeholder="מינימום 6 תווים, ולפחות אות קטנה אחת באנגלית"
+                                           id="gpasswordTB" pattern="^(?=.*[a-z])(?=.*\d)[a-z\d]{6,}$"
+                                           oninvalid="this.setCustomValidity('מינימום 6 תווים, ולפחות אות קטנה אחת באנגלית')"
+                                           oninput="this.setCustomValidity('')"
+                                           autocomplete="on" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>כתובת מגורים:</label>
+                                    <input type="text" class="form-control" placeholder='עיר, רחוב, מספר' id="gaddressTB" pattern=".{2,250}" oninvalid="this.setCustomValidity('אנא הכנס כתובת מגורים תקינה')" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>מספר נייד:</label>
+                                    <input type="text" class="form-control" placeholder='מספר פלאפון נייד' id="gPhoneTB" pattern=".{10,10}" oninvalid="this.setCustomValidity('אנא הכנס מספר פלאפון תקין')" oninput="this.setCustomValidity('')" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>קישור לפרופיל Discord:</label>
+                                    <input type="text" class="form-control" placeholder='קישור לפרופיל משתמש' id="gdiscorduserTB" pattern=".{2,250}" oninvalid="this.setCustomValidity('אנא הכנס קישור לפרופיל הדיסקורד שלך')" oninput="this.setCustomValidity('')">
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <div class="form-group" method="post" enctype="multipart/form-data" id="formUpload">
+                                                <label for="file">תמונה: </label>
+                                                <br />
+                                                <input type="file" id="gfiles" name="files" multiple="multiple" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <br />
+                                        <div class="img-circle">
+                                            <div id="gph">
+                                                <img src="https://e7.pngegg.com/pngimages/672/63/png-clipart-discord-computer-icons-online-chat-cool-discord-icon-logo-smiley.png" class="rounded-circle" alt="Cinque Terre" width="100" height="100">
+                                            </div>
+
+                                        </div>
+
+                                        <br /><br />
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+                            <!--Need to fix it to be responsive Down*-->
+
+                            <div class="mb-3" style="text-align:left; padding-left:114px;">
+                                <input type="submit" class="submit-button" value="שליחת טופס" />
+                            </div>
+
+                        </div>
+                    </form>
+
+
+                </div>
+                <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+
+                    <h3 style="color:#f3113b; padding-top: 5px;">טופס הרשמה - מארגן</h3>
+
+                    <div class="row">
+
+                        <div class="col-sm-4">
+                            <div>
+                                <h5>מי יכול להירשם?</h5>
+                                <p>מארגני תחרויות גיימינג (ספורט אלקטרוני) ישראליים יכולים להירשם כמארגנים מוכרים בעמותה. ניתן להירשם כאדם פרטי או כארגון רשום כחוק,<br /> ובלבד שהאדם \ הארגון רשומים בישראל.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div>
+                                <h5>מה היתרונות למארגן מוכר בעמותה?</h5>
+                                <p>רק מארגן מוכר של העמותה לגיימינג תחרותי (ע"ר) יכול לקבל הכרה ותמיכה בתחרויות פרטיות שבארגונו. עם קבלת אישור הרישום כמארגן מוכר, כל התחרויות של אותו המארגן זכאיות לקבל תמיכה מהעמותה כתחרויות מוכרות ובלבד שהן עומדות בקריטריונים הרלוונטיים המובאים ב<strong>נוהל ההכרה בתחרויות</strong>.</p><p>בנוסף, יקבל המארגן גישה למערכת התחרויות של העמותה לטובת פרסום התחרויות באתר העמותה. כמו כן, המארגן זכאי לקבל תג "מארגן מוכר" בשרת הדיסקורד של העמותה הכולל הרשאות פרסום בערוץ "אירועים ותחרויות".</p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div>
+                                <h5>מה היתרונות לתחרות מוכרת?</h5>
+                                <p>תחרות של מארגן מוכר ("תחרות מוכרת") היא תחרות פרטית המקבל תמיכה מהעמותה:</p><ul><li>דף תחרות באתר העמותה;</li><li>שחקנים רשומים זכאים לקבל ניקוד רשמי בהתאם לדירוגם בתחרות המוכרת;</li><li>פרסום התחרות בערוצי המדיה החברתית השונים של העמותה –&nbsp;<strong>בהתאם לשיקול העמותה.</strong></li></ul>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <h4 style="padding-bottom:7px;">טופס הרשמה</h4>
+
+                    <form id="oForm" class="was-validated">
+                        <div class="row">
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label for="fname">שם פרטי:</label>
+                                    <input type="text" class="form-control" placeholder="שם פרטי" id="ofirstnameTB" pattern=".{2,15}"
+                                           oninvalid="this.setCustomValidity('שם חייב להכיל בין 2-15 תווים.')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>שם משפחה:</label>
+                                    <input type="text" class="form-control" placeholder="שם משפחה" id="olastnameTB" pattern=".{2,15}"
+                                           oninvalid="this.setCustomValidity('שם משפחה חייב להכיל בין 2-15 תווים.')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>כינוי:</label>
+                                    <input type="text" class="form-control" placeholder='הכינוי שלך בעמותה' id="onicknameTB"
+                                           pattern="^[a-zA-Z]{2,15}$"
+                                           oninvalid="this.setCustomValidity('כינוי חייב להיות 2-15 אותיות ללא מספרים')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>תאריך לידה:</label>
+                                    <input type="date" class="form-control" id="odobTB" oninvalid="this.setCustomValidity('אנא הכנס תאריך לידה תקין')" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div>
+                                    <label>תעודת זהות:</label>
+                                    <input type="text" class="form-control" placeholder="מכיל 8-9 ספרות" id="oidTB" pattern=".{8,9}"
+                                           oninvalid="this.setCustomValidity('מספר תעודת זהות חייב להכיל 8 או 9 ספרות.')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+
+                                <br /> <!--Margin bottom 10px not like <br /> too much space!-->
+
+                                <label>מגדר:</label>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="oMale" name="radio-gender-o" value="Male" required>
+                                    <label class="form-check-label">זכר</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="oFemale" name="radio-gender-o" value="Female" required>
+                                    <label class="form-check-label">נקבה</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="oNone" name="radio-gender-o" value="None" required>
+                                    <label class="form-check-label">מעדיף לא לומר</label>
+                                </div>
+
+                            </div>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>כתובת דוא"ל:</label>
+                                    <input type="email" class="form-control" placeholder='הכנס כתובת דוא"ל כאן' id="oemailTB" pattern="^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$" oninvalid="this.setCustomValidity('Format should be syntax@email.com')" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>סיסמא:</label>
+                                    <input type="password" class="form-control" placeholder="מינימום 6 תווים, ולפחות אות קטנה אחת באנגלית"
+                                           id="opasswordTB" pattern="^(?=.*[a-z])(?=.*\d)[a-z\d]{6,}$"
+                                           oninvalid="this.setCustomValidity('מינימום 6 תווים, ולפחות אות קטנה אחת באנגלית')"
+                                           autocomplete="on" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>כתובת מגורים:</label>
+                                    <input type="text" class="form-control" placeholder='עיר, רחוב, מספר' id="oaddressTB" pattern=".{2,250}" oninvalid="this.setCustomValidity('אנא הכנס כתובת מגורים תקינה')" oninput="this.setCustomValidity('')" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>מספר נייד:</label>
+                                    <input type="text" class="form-control" placeholder='מספר פלאפון נייד' id="oPhoneTB" pattern=".{10,10}" oninvalid="this.setCustomValidity('אנא הכנס מספר נייד תקין')" oninput="this.setCustomValidity('')" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>שם הקהילה אליה שייך:</label>
+                                    <input type="text" class="form-control" placeholder='שם הקהילה ממנה אתה מגיע' id="ocomunitynameTB" pattern=".{2,20}" oninvalid="this.setCustomValidity('אנא הכנס שם קהילה')" oninput="this.setCustomValidity('')">
+                                </div>
+                                <div class="mb-3">
+                                    <label>לינק לאתר הקהילה:</label>
+                                    <input type="text" class="form-control" placeholder='כתובת אתר האינטרנט של הקהילה שלך' id="olinktocommunityTB" pattern=".{4,}" oninvalid="this.setCustomValidity('אנא הכנס כתובת קהילה תקינה')" oninput="this.setCustomValidity('')">
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <div class="form-group" method="post" enctype="multipart/form-data" id="formUpload">
+                                                <label for="file">תמונה: </label>
+                                                <br />
+                                                <input type="file" id="ofiles" name="files" multiple="multiple" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <br />
+                                        <div class="img-circle">
+                                            <div id="oph">
+                                                <img src="https://e7.pngegg.com/pngimages/672/63/png-clipart-discord-computer-icons-online-chat-cool-discord-icon-logo-smiley.png" class="rounded-circle" alt="Cinque Terre" width="100" height="100">
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+                            <!--check if its "V" when sent-->
+                            <div class="row">
+                                <div class="col">
+                                    <h5>הצהרת המבקש</h5>
+                                    <div class="field-list-item">
+                                        <input type="checkbox" id="oadmit" name="oadmit" class="field size-medium" value="admit" required>
+                                        <br />
+                                        <span>במקרה שבו העמותה מכירה בי כמארגן מוכר, אני מתחייב לנהל כל תחרות המוגשת לעמותה בהתאם לחוקים ולתקנות שימסרו במועד הגשת התחרות; אני פוטר בזאת את העמותה מכל אחריות לגבי קיום כל תחרות, ובכלל זאת לא תהיה לעמותה כל חבות ביחס לחלוקת הפרס הכספי, והדבר הוא באחריותי בלבד; אני מתחייב לעמוד בכל ההוראות, החוקים והתקנות החלים על ארגון האירוע בו תתקיים כל תחרות, ובכלל זה קיום ביטוח עבור התחרות והמשתתפים בה; אם יחול שינוי כלשהוא בפרטים עליהם דיווחתי או הצהרתי, אודיע על כך מיידית לעמותה, בכתב; אני מצהיר כי השם דלעיל הוא שמי, וכי הפרטים שמסר בטופס זה הם מלאים, מדויקים ונכונים; אני מתחייב כי קראתי ואני מסכים לתנאי נוהל ההכרה בתחרויות של העמותה כפי שמפורסם באתר העמותה נכון למועד שליחת הטופס.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!--Need to fix it to be responsive Down*-->
+
+                            <div class="mb-3" style="text-align:left; padding-left:114px;">
+
+                                <input type="submit" class="submit-button" value="שליחת טופס" />
+                            </div>
+
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer">
+
+            <div class="sub-footer">
+
+                <div class="row">
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">אודות העמותה</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <p>העמותה לגיימינג תחרותי (ע"ר) היא ארגון לספורט </p>
+                        <p>אלקטרוני בישראל ופועלת ללא מטרות רווח לקידום</p>
+                        <p>ענף הגיימינג התחרותי בישראל.</p>
+
+                        <p style="padding-top: 9px; "><a href="about.html">למדו עוד >></a></p>
+
+                        <div style="margin-bottom: 15px;"></div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">יצירת קשר</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <div class="row">
+
+                            <p>לפניה בכל נושא ניתן לשלוח הודעה בדף המיועד או פניה באמצעות הרשתות החברתיות. </p>
+
+                            <!--<p style="padding-top: 9px;"><a href="about.html">מעבר לעמוד >></a></p>-->
+
+                            <div id="social-media" style="padding-top: 10px; font-size: 21px; margin-bottom: 15px;">
+                                <a href="https://www.youtube.com/channel/UCX98q91JCtTp3gk4gvnGbUQ" target="_blank"><i class="bi bi-youtube" style="color: #f3ebeb"></i></a>
+                                <a href="https://www.linkedin.com/company/19043406" target="_blank"><i class="bi bi-linkedin" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="https://www.facebook.com/IsraelEsports" target="_blank"><i class="bi bi-facebook" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="contact.html"><i class="bi bi-info-circle-fill" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">בשיתוף</h6>
+
+                        <div class="row">
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/iesf-1.png" style="width:60px;">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/maccabi.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/ASA.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/PC.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/MI-3.png" style="width:60px">
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

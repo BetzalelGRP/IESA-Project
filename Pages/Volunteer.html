@@ -1,0 +1,505 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!--//Email-->
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <!--//Email-->
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/volunteer.css" rel="stylesheet" />
+
+    <title>&#x202E; התנדבות בעמותה – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+    <script>
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Site();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+            var acc = document.getElementsByClassName("accordion");
+            var i;
+
+            for (i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    var panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                        panel.style.maxHeight = null;
+                    } else {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    }
+                });
+            }
+
+
+
+            $("#GeneralForm").submit(function (e) {
+                return false;
+                e.preventDefault();
+                sendEmailGeneral();
+            });
+
+
+            function sendEmailGeneral() {
+
+            //    var name = $("#nameTB1").val();
+            //    var phone = $("#phoneTB1").val();
+            //    var email = $("#emailTB1").val();
+            //    var discord = $("#discordTB1").val();
+            //    var dob = $("#dobTB1").val();
+            //    var gender1
+
+                Email.send({
+                    Host: "smtp.google.com",
+                    Username: "reactapptest230@gmail.com",
+                    Password: "FA1278973EE70094257D1CFD15BECDBA0BDC",
+
+                    To: "reactapptest230@gmail.com",
+                    From: $("#emailTB1").val(),
+                    Subject: "התנדבות בעמותה - מתנדב/ת כללי/ת",
+
+                    Body: $("#textareaTB1").val()
+
+                }).then(
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'פניה נשלחה לעמותה בהצלחה!',
+                        showConfirmButton: false,
+                        timer: 2500
+                    })
+                );
+
+                window.location.replace("Contact.html");
+
+                return false;
+            }
+
+
+            function sendEmailDesigner() {
+
+                //    var name = $("#nameTB2").val();
+                //    var phone = $("#phoneTB2").val();
+                //    var email = $("#emailTB2").val();
+                //    var discord = $("#discordTB2").val();
+                //    var linktosite = $("#siteTB2").val();
+                //    var dob = $("#dobTB2").val();
+                //    var gender2
+
+                Email.send({
+                    Host: "smtp.google.com",
+                    Username: "reactapptest230@gmail.com",
+                    Password: "FA1278973EE70094257D1CFD15BECDBA0BDC",
+
+                    To: "reactapptest230@gmail.com",
+                    From: $("#emailTB2").val(),
+                    Subject: "התנדבות בעמותה - מעצב/ת גרפיקה",
+
+                    Body: $("#textareaTB2").val()
+
+                }).then(
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'פניה נשלחה לעמותה בהצלחה!',
+                        showConfirmButton: false,
+                        timer: 2500
+                    })
+                );
+
+                window.location.replace("Contact.html");
+
+                return false;
+            }
+
+
+
+
+
+        });
+
+
+
+
+    </script>
+
+
+</head>
+<body>
+
+    <!--For facebook iframe-->
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v10.0&appId=120238457987541&autoLogAppEvents=1" nonce="pnARNgWE"></script>
+    <!--For facebook iframe-->
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+
+        <div class="container">
+
+
+            <section id="page_title">
+                <a class="titlelink" href="index.html">ראשי </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <h2 class="headh2">התנדבות בעמותה</h2>
+                <div class="divdown"></div>
+            </section>
+
+            <section id="page_content">
+                <div class="row">
+                    <div class="col-lg-9">
+
+                        <div>
+                            <p>רוצים לקחת חלק בפעילויות ואירועים לקידום ופיתוח הגיימינג התחרותי בישראל?<br /> ניתן להירשם כמתנדבים בעמותה בטופס שלהלן. מומלץ להתחבר לשרת ה-Discord שלנו לאחר מילוי הטופס.</p><h6>בחרו את התפקיד הרצוי:</h6>
+                        </div>
+
+                        <br />
+
+                        <section id="accordion">
+
+                            <button class="accordion">מתנדבים כלליים</button>
+                            <div class="panel">
+                                <div style="margin-bottom: 10px;"></div>
+
+                                <form id="generalForm">
+                                    <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                        <div class="col-md-6">
+                                            <strong style="margin-bottom:5px;">שם מלא</strong>
+                                            <input type="text" class="form-control required" name="name" id="nameTB1" required>
+                                        </div>
+                                    </div>
+                                    <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                        <div class="col-md-6">
+                                            <strong style="margin-bottom:5px;">מספר טלפון \ Whatsapp</strong>
+                                            <input type="text" class="form-control required" name="phone" id="phoneTB1" required>
+                                        </div>
+                                    </div>
+                                    <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                        <div class="col-md-6">
+                                            <strong style="margin-bottom:5px;">אימייל</strong>
+                                            <input type="email" class="form-control required" name="email" id="emailTB1" required>
+                                        </div>
+                                    </div>
+                                    <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                        <div class="col-md-6">
+                                            <strong style="margin-bottom:5px;">דיסקורד</strong>
+                                            <input type="text" class="form-control" placeholder="כולל טאג: Nickname#0000" name="discord" id="discordTB1">
+                                        </div>
+                                    </div>
+
+                                    <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                        <div class="col-md-6">
+                                            <strong style="margin-bottom:5px;">תאריך לידה</strong>
+                                            <input type="date" class="form-control required" name="dob" id="dobTB1" required>
+                                        </div>
+                                    </div>
+                                    <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                        <div class="col-md-6">
+
+                                            <strong style="margin-bottom:5px;">מגדר</strong>
+                                            <br />
+                                            <input type="radio" class="form-check-input" id="gMale" name="radio-gender-1" value="Male" required>
+                                            <label class="form-check-label" for="validationFormCheck1">זכר</label>
+
+                                            <span style="margin-left: 8px;"></span>
+
+                                            <input type="radio" class="form-check-input" id="gFemale" name="radio-gender-1" value="Female" required>
+                                            <label class="form-check-label" for="validationFormCheck2">נקבה</label>
+
+                                            <span style="margin-left: 8px;"></span>
+
+                                            <input type="radio" class="form-check-input" id="gNone" name="radio-gender-1" value="None" required>
+                                            <label class="form-check-label" for="validationFormCheck3">מעדיף לא לומר</label>
+
+                                        </div>
+
+                                    </div>
+                                    <div class="nk-gap"></div>
+                                    <strong style="margin-bottom:5px;">הערות</strong>
+                                    <textarea class="form-control" name="message" rows="5" id="textareaTB1"></textarea>
+                                    <div class="nk-gap-1"></div>
+
+                                    <div class="mb-3" style="text-align:left; margin-top: 11px;">
+                                        <input type="submit" id="GeneralVolenteer" class="submit-button" value="שליחת טופס" />
+                                    </div>
+
+                                </form>
+
+
+
+                            </div>
+
+                            <div style="margin-bottom: 10px;"></div>
+
+                            <button class="accordion">מעצב\ת גרפיקה</button>
+                            <div class="panel">
+                                <div style="margin-bottom: 10px;"></div>
+
+                                <div id="elementor-tab-content-2672" class="elementor-tab-content elementor-clearfix elementor-active" data-tab="2" role="tabpanel" aria-labelledby="elementor-tab-title-2672" style="display: block;">
+                                    <p>העמותה לגיימינג תחרותי מחפשת&nbsp;<strong>מעצב גרפי</strong> שיסייע ביצירת התכנים הגרפיים הקשורים לפעילות העמותה תחת כללי המיתוג של העמותה בכל המדיות.</p>
+                                    <p><strong>מועמדים מתאימים הם:</strong></p>
+                                    <ul>
+                                        <li>גיימרים ובעלי היכרות כללית עם ענף ה- Esports בארץ ובעולם</li>
+                                        <li>אנשים המעוניינים לתרום מזמנם וכשרונם לקידום הגיימינג התחרותי בישראל</li>
+                                        <li>בעלי ניסיון בעיצוב גרפי ו\או סטונדטים בתחום</li>
+                                        <li>בעלי היכרות עם טכנולוגיות עיצוב רלוונטיות (פוטושופ, אילוסטרייטור, אינדיזיין וכו')</li>
+                                        <li>חדים ושמים דגש על אסתטיקה ו"הפרטים הקטנים"</li>
+                                        <li>בעלי יכולות תקשורת מצוינות</li>
+                                        <li>בעלי היכולת לעבוד בצורה מסודרת ולעמוד בלוחות זמנים</li>
+                                        <li>כל ניסיון קודם דומה או תואר בתחום הוא פלוס</li>
+                                    </ul><p><strong>תחומי האחריות:</strong></p><ul>
+                                        <li>יצירת חומרים גרפיים עבור המדיות השונות של העמותה (פייסבוק, לינקדאין, אתר וכו')</li>
+                                        <li>וידוא שכל החומרים הגרפיים של העמותה עומדים בהנחיות המותג</li>
+                                        <li>העלאת רעיונות והובלת התחום בעמותה לשיפור הנוכחות הגרפית שלה בכל המדיות</li>
+                                    </ul><p><strong>קצת על צוות המִנְהֶלֶת בעמותה</strong></p>
+                                    <p>צוות <a href="https://iesa.org.il/about/structure">המנהלת</a> של העמותה לגיימינג תחרותי פועל ישירות תחת יו"ר העמותה והוועד המנהל, ומהווה הזרוע הביצועית של הארגון ביישום התכניות וההחלטות של העמותה.</p>
+                                    <p><strong>שימו <span style="color: #dd163b">♥</span> – ככל התפקידים בעמותה, גם תפקיד זה הוא בהתנדבות מלאה</strong>.</p>
+
+                                    <h4>הגשת מועמדות</h4>
+
+                                    <div style="margin-bottom: 12px;"></div>
+
+                                    <form id="designerForm">
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+                                                <strong style="margin-bottom:5px;">שם מלא</strong>
+                                                <input type="text" class="form-control required" name="name" id="nameTB2" required>
+                                            </div>
+                                        </div>
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+                                                <strong style="margin-bottom:5px;">מספר טלפון \ Whatsapp</strong>
+                                                <input type="text" class="form-control required" name="phone" id="phoneTB2" required>
+                                            </div>
+                                        </div>
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+                                                <strong style="margin-bottom:5px;">אימייל</strong>
+                                                <input type="email" class="form-control required" name="email" id="emailTB2" required>
+                                            </div>
+                                        </div>
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+                                                <strong style="margin-bottom:5px;">דיסקורד</strong>
+                                                <input type="text" class="form-control" placeholder="כולל טאג: Nickname#0000" name="discord" id="discordTB2">
+                                            </div>
+                                        </div>
+
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+                                                <strong style="margin-bottom:5px;">קישור לאתר אישי / עמוד ברשת</strong>
+                                                <input type="text" class="form-control required" placeholder="DeviantArt, אתר אישי, פייסבוק, תיק עבודות וכו'" name="site" id="siteTB2" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+                                                <strong style="margin-bottom:5px;">תאריך לידה</strong>
+                                                <input type="date" class="form-control required" name="dob" id="dobTB2" required>
+                                            </div>
+                                        </div>
+                                        <div class="row vertical-gap sm-gap" style="margin-bottom: 9px;">
+                                            <div class="col-md-6">
+
+                                                <strong style="margin-bottom:5px;">מגדר</strong>
+                                                <br />
+                                                <input type="radio" class="form-check-input" id="gMale" name="radio-gender-2" value="Male" required>
+                                                <label class="form-check-label" for="validationFormCheck1">זכר</label>
+
+                                                <span style="margin-left: 8px;"></span>
+
+                                                <input type="radio" class="form-check-input" id="gFemale" name="radio-gender-2" value="Female" required>
+                                                <label class="form-check-label" for="validationFormCheck2">נקבה</label>
+
+                                                <span style="margin-left: 8px;"></span>
+
+                                                <input type="radio" class="form-check-input" id="gNone" name="radio-gender-2" value="None" required>
+                                                <label class="form-check-label" for="validationFormCheck3">מעדיף לא לומר</label>
+
+                                            </div>
+
+                                        </div>
+                                        <div class="nk-gap"></div>
+                                        <strong style="margin-bottom:5px;">אודותייך</strong>
+                                        <textarea class="form-control required" name="message" rows="5" id="textareaTB2" required></textarea>
+                                        <div class="nk-gap-1"></div>
+
+                                        <div class="mb-3" style="text-align:left; margin-top: 11px;">
+                                            <input type="submit" class="submit-button" value="שליחת טופס" />
+                                        </div>
+
+                                    </form>
+
+
+                                </div>
+
+
+
+                            </div>
+
+                            <br>
+
+
+                        </section>
+
+
+                    </div>
+
+                    <div class="col-lg-3">
+
+                        <div class="row">
+                            <iframe src="https://discordapp.com/widget?id=595235006641864705&amp;theme=dark" width="350" height="400" allowtransparency="true" frameborder="0"></iframe>
+                        </div>
+
+                        <div style="margin-bottom:18px;"></div>
+
+                        <div class="row" id="anotherpostsbox">
+
+                            <div class="row" id="headeranotherpost">
+
+                                <h4 class="headh4"><span style="color:#1cbbaa">פייסבוק</span></h4>
+
+                            </div>
+
+                            <div class="row" style="margin-top:11px; height:342px">
+
+                                <div class="fb-page" data-href="https://www.facebook.com/IsraelEsports" data-tabs="timeline" data-width="250" data-height="330" data-small-header="false" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true"><blockquote cite="https://www.facebook.com/IsraelEsports" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/IsraelEsports">‎העמותה לגיימינג תחרותי בישראל - Israeli Esports Association‎</a></blockquote></div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </section> <!--End Page Content-->
+
+        </div>
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer">
+
+            <div class="sub-footer">
+
+                <div class="row">
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">אודות העמותה</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <p>העמותה לגיימינג תחרותי (ע"ר) היא ארגון לספורט </p>
+                        <p>אלקטרוני בישראל ופועלת ללא מטרות רווח לקידום</p>
+                        <p>ענף הגיימינג התחרותי בישראל.</p>
+
+                        <p style="padding-top: 9px; "><a href="about.html">למדו עוד >></a></p>
+
+                        <div style="margin-bottom: 15px;"></div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">יצירת קשר</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <div class="row">
+
+                            <p>לפניה בכל נושא ניתן לשלוח הודעה בדף המיועד או פניה באמצעות הרשתות החברתיות. </p>
+
+                            <!--<p style="padding-top: 9px;"><a href="about.html">מעבר לעמוד >></a></p>-->
+
+                            <div id="social-media" style="padding-top: 10px; font-size: 21px; margin-bottom: 15px;">
+                                <a href="https://www.youtube.com/channel/UCX98q91JCtTp3gk4gvnGbUQ" target="_blank"><i class="bi bi-youtube" style="color: #f3ebeb"></i></a>
+                                <a href="https://www.linkedin.com/company/19043406" target="_blank"><i class="bi bi-linkedin" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="https://www.facebook.com/IsraelEsports" target="_blank"><i class="bi bi-facebook" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="contact.html"><i class="bi bi-info-circle-fill" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">בשיתוף</h6>
+
+                        <div class="row">
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/iesf-1.png" style="width:60px;">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/maccabi.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/ASA.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/PC.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/MI-3.png" style="width:60px">
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

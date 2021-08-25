@@ -1,0 +1,310 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/ajaxCalls.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/team_2020.css" rel="stylesheet" />
+
+    <title>&#x202E; נבחרת ישראל 0202 – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+    <script>
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Site();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+            var acc = document.getElementsByClassName("accordion");
+            var i;
+
+            for (i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    var panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                        panel.style.maxHeight = null;
+                    } else {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    }
+                });
+            }
+
+        });
+
+    </script>
+
+
+</head>
+<body>
+
+    <!--For facebook iframe-->
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v10.0&appId=120238457987541&autoLogAppEvents=1" nonce="pnARNgWE"></script>
+    <!--For facebook iframe-->
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title">
+                <a class="titlelink" href="index.html">ראשי </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <a class="titlelink" href="Israel_National_Team.html">נבחרת ישראל </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <h2 class="headh2">נבחרת ישראל בגיימינג 2020</h2>
+                <div class="divdown"></div>
+            </section>
+
+            <section id="page_content">
+                <div class="row">
+                    <div class="col">
+
+                        <div class="elementor-column-wrap elementor-element-populated">
+                            <div class="elementor-widget-wrap">
+                                <div class="elementor-element elementor-element-2164771 elementor-widget elementor-widget-text-editor" data-id="2164771" data-element_type="widget" data-widget_type="text-editor.default">
+                                    <div class="elementor-widget-container">
+                                        <div class="elementor-text-editor elementor-clearfix">
+                                            <p><strong>נבחרת ישראל בגיימינג 2020 </strong>היא הנבחרת הישראלית לאליפות העולם בספורט אלקטרוני 2020, שהתקיימה באירוח העמותה לגיימינג תחרותי בישראל ומכבי תנועה עולמית באופן מקוון לאור משבר הקורונה. הנבחרת השתתפה בכל המקצים באליפות העולם. הנבחרת מנוהלת ע"י העמותה לגיימינג תחרותי.</p>
+                                            <br />
+                                            <table class="table table-bordered table-condensed">
+                                                <tbody>
+                                                    <tr>
+
+                                                        <th style="background: #3e76ca; font-size: 1.12rem !important;" colspan="5">סגל נבחרת ישראל בגיימינג 2020</th>
+                                                    </tr>
+                                                    <tr><th style="text-align: center; ">DOTA 2</th><th style="text-align: center; ">Tekken 7</th><th style="text-align: center; ">eFootball PES2020</th><th style="text-align: center; " colspan="2">סגל מנהלי</th></tr>
+                                                    <tr><td>דרור "Ugi" אליעד</td><td style="text-align: center; vertical-align: middle;" rowspan="5">מיכאל "SolidStonE" קרקז</td><td style="text-align: center; vertical-align: middle; " rowspan="5">אוראל "OrelD123" דניאל</td><td style="text-align: center; vertical-align: middle;" rowspan="5">יו"ר הנבחרת</td><td style="text-align: center; vertical-align: middle;" rowspan="5">גיל רונן</td></tr>
+                                                    <tr><td>קיריל "CHAD" יאקימנקו</td></tr>
+                                                    <tr><td>מוחמד "AdeKadora" עודיה</td></tr>
+                                                    <tr><td>ירין "yarintheslayer" לוגסי</td></tr>
+                                                    <tr><td>גלעד "Shmuckler" ציוני</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <br />
+
+                                <div class="elementor-element elementor-element-4cedc61 elementor-widget elementor-widget-heading" data-id="4cedc61" data-element_type="widget" data-widget_type="heading.default">
+                                    <div class="elementor-widget-container">
+
+                                        <h3 class="nk-decorated-h-2"><span>אליפות העולם</span></h3>
+                                        <br />
+                                    </div>
+                                </div>
+
+                                <div class="elementor-element elementor-element-6dd2481 elementor-widget elementor-widget-text-editor" data-id="6dd2481" data-element_type="widget" data-widget_type="text-editor.default">
+                                    <div class="elementor-widget-container">
+                                        <div class="elementor-text-editor elementor-clearfix">
+                                            <p>לאור משבר הקורונה, אליפות העולם חולקה לאזורים והתקיימה באופן מקוון. שלב הגמר בוטל לאור המשבר.</p><p><strong>ישראל השתתפה בתחרויות אירופה.</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="elementor-element elementor-element-53cd4da elementor-widget elementor-widget-heading" data-id="53cd4da" data-element_type="widget" data-widget_type="heading.default">
+                                    <br />
+                                    <div class="elementor-widget-container">
+                                        <h3 class="nk-decorated-h-2"><span>תוצאות נבחרת ישראל (אירופה)</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="elementor-element elementor-element-78212df elementor-widget elementor-widget-text-editor" data-id="78212df" data-element_type="widget" data-widget_type="text-editor.default">
+                                    <div class="elementor-widget-container">
+                                        <div class="elementor-text-editor elementor-clearfix">
+                                            <ol>
+                                                <li><strong>DotA 2</strong> – הודחו בשלב הבתים</li>
+                                                <li><strong>Tekken</strong> – הודח בשלב הבתים</li>
+                                                <li><strong>eFootball PES</strong> – מקום&nbsp;<strong>שלישי</strong> מתוך 25</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <br />
+
+                                    <div class="elementor-widget-container">
+                                        <h3 class="nk-decorated-h-2"><span>צפייה במשחקים (VOD)</span></h3>
+                                        <br />
+
+                                    </div>
+                                </div>
+
+
+                                <section id="accordion">
+
+                                    <button class="accordion">Tekken 7</button>
+                                    <div class="panel">
+                                        <div style="margin-bottom: 10px;"></div>
+
+                                        <div>
+                                            <ul>
+                                                <li><a href="https://www.youtube.com/watch?v=qmGWi_16v64" target="_blank" rel="noopener">ישראל נגד רוסיה (שלב הבתים)</a></li>
+                                                <li><a href="https://www.youtube.com/watch?v=cJr5WCicFRk" target="_blank" rel="noopener">ישראל נגד בלגיה (שלב הבתים)</a></li>
+                                            </ul>
+                                        </div>
+
+                                    </div>
+
+                                    <div style="margin-bottom: 10px;"></div>
+
+                                    <button class="accordion">DOTA 2</button>
+                                    <div class="panel">
+                                        <div style="margin-bottom: 10px;"></div>
+
+                                        <div>
+                                            <ul>
+                                                <li><a href="https://www.youtube.com/watch?v=hv6BW68zF7s" target="_blank" rel="noopener">ישראל נגד סרביה (שלב הבתים)</a></li>
+                                                <li><a href="https://www.youtube.com/watch?v=ZdJ9x0In-Pk" target="_blank" rel="noopener">ישראל נגד אוסטריה (שלב הבתים)</a></li>
+                                                <li><a href="https://www.youtube.com/watch?v=rerUCby7f5g">ישראל נגד מונטנגרו (שלב הבתים)</a></li>
+                                            </ul>
+                                        </div>
+
+                                    </div>
+
+                                    <br>
+
+
+                                </section>
+
+
+
+                            </div>
+                        </div>
+
+
+
+                    </div>
+
+
+                </div>
+
+
+            </section> <!--End Page Content-->
+
+        </div>
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer">
+
+            <div class="sub-footer">
+
+                <div class="row">
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">אודות העמותה</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <p>העמותה לגיימינג תחרותי (ע"ר) היא ארגון לספורט </p>
+                        <p>אלקטרוני בישראל ופועלת ללא מטרות רווח לקידום</p>
+                        <p>ענף הגיימינג התחרותי בישראל.</p>
+
+                        <p style="padding-top: 9px; "><a href="about.html">למדו עוד >></a></p>
+
+                        <div style="margin-bottom: 15px;"></div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">יצירת קשר</h6>
+                        <div style="margin-top: 15px;"></div>
+
+                        <div class="row">
+
+                            <p>לפניה בכל נושא ניתן לשלוח הודעה בדף המיועד או פניה באמצעות הרשתות החברתיות. </p>
+
+                            <!--<p style="padding-top: 9px;"><a href="about.html">מעבר לעמוד >></a></p>-->
+
+                            <div id="social-media" style="padding-top: 10px; font-size: 21px; margin-bottom: 15px;">
+                                <a href="https://www.youtube.com/channel/UCX98q91JCtTp3gk4gvnGbUQ" target="_blank"><i class="bi bi-youtube" style="color: #f3ebeb"></i></a>
+                                <a href="https://www.linkedin.com/company/19043406" target="_blank"><i class="bi bi-linkedin" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="https://www.facebook.com/IsraelEsports" target="_blank"><i class="bi bi-facebook" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                                <a href="contact.html"><i class="bi bi-info-circle-fill" style="padding-right: 4px; color: #f3ebeb"></i></a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4" style="text-align:right">
+
+                        <h6 id="footer-title">בשיתוף</h6>
+
+                        <div class="row">
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/iesf-1.png" style="width:60px;">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/maccabi.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/ASA.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/PC.png" style="width:60px">
+                            </div>
+                            <div class="column_partner">
+                                <img src="https://iesa.org.il/wp-content/uploads/2019/07/MI-3.png" style="width:60px">
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

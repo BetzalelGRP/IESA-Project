@@ -1,0 +1,519 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/GeneralFunctions.js"></script>
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <script src="../Scripts/GeneralFunctions.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/edit_post.css" rel="stylesheet" />
+
+    <title>&#x202E; עריכת פוסט – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+
+    <script>
+
+        if (localStorage["user_type"] != 1) {
+            location.replace("index.html");
+        }
+
+        $(document).ready(function () {
+
+
+            //--Navbar Script--
+            const openedMenu = document.querySelector('.opened-menu');
+            const closedMenu = document.querySelector('.closed-menu');
+            const navbarMenu = document.querySelector('.navbar');
+            const menuOverlay = document.querySelector('.overlay');
+
+            // Opened navbarMenu
+            // Closed navbarMenu
+            // Closed navbarMenu by Click Outside
+            openedMenu.addEventListener('click', toggleMenu);
+            closedMenu.addEventListener('click', toggleMenu);
+            menuOverlay.addEventListener('click', toggleMenu);
+
+            // Toggle Menu Function
+            function toggleMenu() {
+                navbarMenu.classList.toggle('active');
+                menuOverlay.classList.toggle('active');
+                document.body.classList.toggle('scrolling');
+            }
+
+            navbarMenu.addEventListener('click', (event) => {
+                if (event.target.hasAttribute('data-toggle') && window.innerWidth <= 992) {
+                    // Prevent Default Anchor Click Behavior
+                    event.preventDefault();
+                    const menuItemHasChildren = event.target.parentElement;
+
+                    // If menuItemHasChildren is Expanded, Collapse It
+                    if (menuItemHasChildren.classList.contains('active')) {
+                        collapseSubMenu();
+                    } else {
+                        // Collapse Existing Expanded menuItemHasChildren
+                        if (navbarMenu.querySelector('.menu-item-has-children.active')) {
+                            collapseSubMenu();
+                        }
+                        // Expand New menuItemHasChildren
+                        menuItemHasChildren.classList.add('active');
+                        const subMenu = menuItemHasChildren.querySelector('.sub-menu');
+                        subMenu.style.maxHeight = subMenu.scrollHeight + 'px';
+                    }
+                }
+            });
+
+            // Collapse Sub Menu Function
+            function collapseSubMenu() {
+                navbarMenu.querySelector('.menu-item-has-children.active .sub-menu').removeAttribute('style');
+                navbarMenu.querySelector('.menu-item-has-children.active').classList.remove('active');
+            }
+
+            // Fixed Resize Screen Function
+            function resizeScreen() {
+                // If navbarMenu is Open, Close It
+                if (navbarMenu.classList.contains('active')) {
+                    toggleMenu();
+                }
+
+                // If menuItemHasChildren is Expanded, Collapse It
+                if (navbarMenu.querySelector('.menu-item-has-children.active')) {
+                    collapseSubMenu();
+                }
+            }
+
+            window.addEventListener('resize', () => {
+                if (this.innerWidth > 992) {
+                    resizeScreen();
+                }
+            });
+            //--Navbar Script--
+
+
+
+            counterimage = 3300;
+            phototrigger = 0; //0 if photo didnt change
+
+            var split = window.location.href.split('=');
+            var post_id = split[1];
+
+            ajaxCall("GET", "../api/Posts/getepost?idtoserver=" + post_id, "", renderSuccessPost, Error); //Edit_Post.html - #method OP3
+
+            $("#pForm").submit(function (e) {
+                e.preventDefault();
+
+                if (phototrigger == 1) {
+                    addPhoto(globalpostid); //Will update photo than rest of the information
+                }
+                else { //phototrigger = 0 -> didnt change photo;
+                    updatePost(globalimageurl);
+                }
+
+            });
+
+            $("#logoFile").change(function () {
+                addPreview();
+            });
+
+        });
+
+        function init() {
+
+            //if (localStorage["user_type"] != "1") {
+
+            //    location.replace("TemplatePage.html"); //Wont allow other users to be on this page
+            //}
+
+
+        }
+
+        function renderSuccessPost(postobj) {
+            console.log(postobj);
+
+            globalpostid = postobj.Postid;
+            globalimageurl = postobj.Image1; //if the user didnt change the photo
+
+            $("#titleTB").val(postobj.Title);
+            $("#body1TB").val(postobj.Body1);
+            $("#body2TB").val(postobj.Body2);
+            $("#body3TB").val(postobj.Body3);
+
+
+            let img1 = "<img src='../" + postobj.Image1 + "' class='img-fluid' alt='Logo'/>";
+            document.getElementById("ph").innerHTML = img1;
+
+            if (postobj.Category == 'עולמי') {
+                document.getElementById('categoriesTB').value = 'עולמי';
+            }
+            else {
+                document.getElementById('categoriesTB').value = 'כללי';
+            }
+
+            if (postobj.Status1 == 1) {
+                document.getElementById('statusTB').value = 'פעיל';
+            }
+            else {
+                document.getElementById('statusTB').value = 'לא פעיל';
+            }
+
+
+        }
+
+        function Error(err) {
+            console.log(err.responseJSON.ExceptionMessage);
+
+            swal("בעיה בהתקשרות עם השרת, נא נסה שנית מאוחר יותר")
+        }
+
+        function addPreview() {
+
+            phototrigger = 1; //change photo
+            counterimage = counterimage + 1;
+
+            if (counterimage > 3302) { //Security: User Wont be able to upload more then 3 pictures to the server
+                counterimage = 3300;
+            }
+
+            var data = new FormData();
+
+            var files = $("#logoFile").get(0).files;
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("userid", counterimage); //append what ever data you want to send along with the files.
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../Api/FileUpload",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: imagePreview,
+                error: Error
+            });
+
+
+        }
+
+
+        function imagePreview(data) {
+
+            var imgStr = "";
+
+            if (Array.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    imgStr = "<img src='../" + data[i] + "' alt='Logo'/>";
+                }
+            }
+            else {
+                imgStr = "<img src='../" + data + "'/>";
+            }
+
+            document.getElementById("ph").innerHTML = imgStr;
+        }
+
+        function addPhoto(globalpostid) { //Gets global integer
+
+            var data = new FormData();
+
+            var files = $("#logoFile").get(0).files;
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("userid", globalpostid); //append what ever data you want to send along with the files.
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../Api/FileUpload",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: updatePost,
+                error: Error
+            });
+
+        }
+
+        function updatePost(imageURL) {
+
+            if (phototrigger == 1) {
+                var photoUpload = imageURL[0];
+            }
+            else {
+                var photoUpload = imageURL;
+            }
+
+            if ($("#statusTB").val() == "פעיל") {
+                var editstatus = 1;
+            }
+            else {
+                var editstatus = 0;
+            }
+
+            let PostObj = {
+                Postid: globalpostid,
+                Title: $("#titleTB").val(),
+                Body1: $("#body1TB").val(),
+                Body2: $("#body2TB").val(),
+                Body3: $("#body3TB").val(),
+                Image1: photoUpload,
+                Category: $("#categoriesTB").val(),
+                Status1: editstatus
+            }
+
+            ajaxCall("PUT", "../api/Posts/updatepost", JSON.stringify(PostObj), SuccessUpdate, Error); //Edit_Post.html - method OP4
+
+
+        }
+
+        function SuccessUpdate(data) {
+            console.log(data);
+
+            swal("פוסט עודכן בהצלחה", "", "success");
+
+            setTimeout(function () {
+                //location.replace("Manager_Main_Page.html");
+                window.close();
+            }, 2500);
+        }
+
+    </script>
+
+
+</head>
+<body onload="init()">
+
+    <!-- Section: Header -->
+    <div class="user-nav">
+        <span style="margin-left: 9px;">שלום עומר</span>
+        <span style="margin-left: 9px;">|</span>
+        <a href="index.html"><i class="bi bi-box-arrow-right" style="position:relative; top: 1px; left: 1.5px;"></i> התנתק </a>
+    </div>
+
+    <header class="header">
+        <div class="top-navbar">
+            <section class="wrapper">
+
+                <div style="display:flex">
+                    <a href="TemplatePage_Site.html">
+                        <img src="https://iesa.org.il/wp-content/uploads/2020/04/newlogosite.png" alt="העמותה לגיימינג תחרותי בישראל" class="logo-img-primary" style="margin-right: 1.6rem;">
+                    </a>
+                    <span style="margin-right:9px;"></span>
+                    <span style="margin-left: 14px; border-left: 1px solid #979797;"></span>
+                    <a href="TemplatePage_Site.html">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Flag_of_Israel.svg/1100px-Flag_of_Israel.svg.png" alt="העמותה לגיימינג תחרותי בישראל" class="logo-img-primary" style="height:33px; margin-top: 7px;">
+                    </a>
+                </div>
+
+                <button type="button" class="opened-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="overlay"></div>
+
+
+                <nav class="navbar">
+                    <button type="button" class="closed-menu">
+                        <img src="https://www.cssscript.com/demo/responsive-single-level-dropdown-menu/asset/closed.svg" class="closed-icon" alt="closed">
+                    </button>
+                    <ul class="menu">
+                        <li class="menu-item"><a href="manager_main_page.html" id="mang-nav">ניהול מערכת</a></li>
+                        <li class="menu-item"><a href="database.html" id="data-nav">מאגר מידע</a></li>
+                        <li class="menu-item"><a href="add_new_post.html" id="post-nav">יצירת פוסט</a></li>
+                        <li class="menu-item"><a href="edit_personal_details.html" id="edit-nav">עריכת פרטים</a></li>
+                        <li class="menu-item"><a href="index.html" id="site-nav">אתר העמותה</a></li>
+                    </ul>
+                </nav>
+
+            </section>
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title">
+                <h2 class="headh2">עריכת פוסט</h2>
+                <div class="divdown"></div>
+            </section>
+
+            <i class="bi bi-info-circle"></i><span> הודעה מטעם העמותה בעמוד הראשי מוגדרת כמספר פוסט - 1</span>
+            <br>
+            <br>
+
+            <h4 style="color:white">עדכון שדות פוסט</h4><br>
+
+            <form id="pForm" class="was-validated">
+                <div class="row">
+                    <div class="col">
+
+                        <div class="mb-3">
+                            <label>כותרת:</label>
+                            <input type="text" class="form-control" id="titleTB" pattern=".{4,50}"
+                                   oninvalid="this.setCustomValidity('עד 50 תווים')"
+                                   oninput="this.setCustomValidity('')" required>
+                        </div>
+                    </div>
+                    <div class="col">
+
+
+                        <div class="mb-3">
+                            <label>קטגורייה:</label><br />
+                            <select name="gamecategories" class="form-select" id="categoriesTB" required>
+                                <option hidden selected></option>
+                                <option value="כללי">כללי</option>
+                                <option value="עולמי">עולמי</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="mb-3">
+                            <label>סטטוס:</label><br />
+                            <select name="poststatus" class="form-select" id="statusTB" required>
+                                <option hidden selected></option>
+                                <option value="פעיל">פעיל</option>
+                                <option value="לא פעיל">לא פעיל</option>
+                            </select>
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col">
+
+                        <div class="mb-3">
+                            <label>פסקה 1:</label>
+                            <textarea class="form-control" id="body1TB" placeholder="" pattern=".{4,3999}"
+                                      oninvalid="this.setCustomValidity('עד 4000 תווים')" rows="7" required></textarea>
+                            <div id="charNum"></div> <!--this div show how many chars we used in textarea-->
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col">
+
+                        <div class="mb-3">
+                            <label>פסקה 2:</label>
+                            <textarea class="form-control" id="body2TB" placeholder="" pattern=".{4,3999}"
+                                      oninvalid="this.setCustomValidity('עד 4000 תווים')" rows="7"></textarea>
+                            <div id="charNum"></div> <!--this div show how many chars we used in textarea-->
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col">
+
+                        <div class="mb-3">
+                            <label>פסקה 3:</label>
+                            <textarea class="form-control" id="body3TB" placeholder="" pattern=".{4,3999}"
+                                      oninvalid="this.setCustomValidity('עד 4000 תווים')" rows="7"></textarea>
+                            <div id="charNum"></div> <!--this div show how many chars we used in textarea-->
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="row">
+                    <div class="col">
+                        <div class="mb-3">
+                            <div class="form-group" method="post" enctype="multipart/form-data" id="formUpload">
+                                <label for="file">לוגו פוסט: </label>
+                                <br />
+                                <input type="file" id="logoFile" name="files" multiple="multiple" />
+                                <p class="noteforfiles">הגודל המומלץ ללוגו 808x400</p>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col">
+                        <label>תצוגה מקדימה: </label>
+                        <div id="ph">
+
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="row" dir="ltr">
+
+                    <div class="col" style="margin-left:25px;">
+                        <br /><br />
+
+                        <!--<input type="button" class="btn btn-danger" value="תצוגה מקדימה" id="previewC" />-->
+                        <input type="submit" class="btn btn-success" value="שמירת שינויים" onsubmit="return false" />
+                        <input type="button" class="btn btn-danger" value="ביטול" onclick="window.close();" />
+
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+
+
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer-system">
+
+            <div class="sub-footer">
+                <div class="row">
+
+                    <div class="col" style="text-align:center">
+
+                        <p>לכל תקלה או שאלה על המערכת ניתן לכתוב לנו בדף יצירת קשר - למעבר לעמוד <a href="Contact.html">לחצו כאן</a></p>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+</body>
+</html>

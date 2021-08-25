@@ -1,0 +1,1291 @@
+﻿
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/edit_competition.css" rel="stylesheet" />
+
+    <title>&#x202E; עריכת פרטי תחרות – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+
+    <script>
+
+        if (localStorage["user_type"] != 1) {
+            location.replace("index.html");
+        }
+
+        var logoURL = '';
+        var bannerURL = '';
+        var imgType = '';
+        var counterimage = 2300;
+        var address = '';
+        var today = getDate();
+        var GameCategories;
+        var CId;
+        var Ckind;
+        var Cmultiplier;
+        var Pro;
+        var proCmultiplier;
+        var participants = 0;
+        var gamersarray = [];
+        var gamersids = [];
+
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Manager();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+            GetAllGameCategories();
+
+            $("#rankEdit").click(GetRanksForC);
+            $("#ParticipentsBTN").click(ShowParticipents);
+
+
+            $("#cancelEdit").click(function () {
+                swal({
+                    title: "האם אתה בטוח שברצונך לצאת?",
+                    text: "כל השינויים יאבדו",
+                    icon: "warning",
+                    buttons: [
+                        'הישאר בדף זה',
+                        'חזור לאזור אישי'
+                    ],
+                    dangerMode: true,
+                }).then(function (isConfirm) {
+                    if (isConfirm) {
+                        location.replace("Manager_Main_Page.html")
+                    } else {
+
+                    }
+                });
+            })
+
+            $("#previewC").click(PreviewBuilder);
+
+            $("#logoFile").change(function () {
+                addPreview('_logo');
+            });
+            $("#bannerFile").change(function () {
+                addPreview('_banner');
+            });
+
+            $('input[type=radio][name=radio-online]').change(function () {
+                if (this.id == 'online') {
+                    document.getElementById("addressDIV").innerHTML = '';
+                }
+                else if (this.id == 'offline') {
+                    document.getElementById("addressDIV").innerHTML = '<label>כתובת התחרות:</label>' +
+                        '<input type = "text" class="form-control" placeholder = "במידה ולא אונליין" id = "addressTB"' +
+                        + 'oninvalid="this.setCustomValidity("הכנס כתובת לתחרות")' + 'oninput="this.setCustomValidity("")" required>';
+                }
+            });
+
+            //Validation For Dates Canceld in EDIT !!
+            //document.getElementById("ldfrDB").setAttribute("min", today);
+
+            //$("#ldfrDB").change(function () {
+            //    document.getElementById("startdDB").setAttribute("min", $("#ldfrDB").val());
+
+            //});
+
+            //$("#startdDB").change(function () {
+            //    document.getElementById("enddDB").setAttribute("min", $("#startdDB").val());
+
+            //});
+
+
+            var split = window.location.href.split('=');
+            CId = split[1];
+
+
+            ajaxCall("GET", "../api/Competitions/getcategory?CompetitionId=" + CId + "", "", getSuccessCg, getErrorCg); //Edit_Competitions.html - method SC5
+            ajaxCall("GET", "../api/Competitions/getone?CompetitionId=" + CId + "", "", getSuccessC, getErrorC); //Edit_Competitions.html - method SC6
+
+            document.getElementById("cForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                addBanner();
+            });
+
+
+            $('#myModal').on('shown.bs.modal', function () {
+                $('#myInput').trigger('focus')
+            });
+
+            $('#acceptranks').click(function () {
+
+                var Scorearr = [];
+                var score = 0;
+
+                for (var i = 0; i < participants; i++) {
+                    if (i == 0)
+                        score = $('#rank' + 1).val()
+                    else if (i == 1)
+                        score = $('#rank' + 2).val()
+                    else if (i == 2 || i == 3)
+                        score = $('#rank' + 3).val()
+                    else if (i > 3 && i < 8)
+                        score = $('#rank' + 4).val()
+                    else
+                        score = $('#rank' + 5).val()
+
+
+                    console.log("CHeck: ", gamersarray)
+
+                    ScoresObj = {
+                        Competitionid: CId,
+                        Gamerid: gamersids[i],
+                        Score: score
+                    }
+                    Scorearr.push(ScoresObj)
+                }
+                console.log("scorearr: ", Scorearr)
+
+                ajaxCall("PUT", "../api/Competitions/addscore", JSON.stringify(Scorearr), SuccessInsertRanks, ErrorInsertRanks); //Orgenaizer_Main_Page.html - method SC2
+
+
+
+            });
+
+        });
+
+        function SuccessInsertRanks(data) {
+            console.log("SuccessInsertRanks", data);
+
+
+
+            swal({
+                title: "מצויין!",
+                text: "דירוגים נוספו בהצלחה",
+                icon: "success",
+                button: "אישור",
+            });
+
+            setTimeout(function () {
+                location.replace("Manager_Main_Page.html");
+            }, 2500);
+
+
+        }
+
+        function ErrorInsertRanks(err) {
+            console.log("ErrorInsertRanks", err)
+        }
+
+        function GetRanksForC() {
+            ajaxCall("GET", "../api/Competitions/mark5?CId=" + CId + "&statusval=" + 0, "", getSuccessRanks, getErrorRanks); //Edit_Competitions.html - method SC6
+        }
+
+        function getSuccessRanks(data) {
+            $("#exampleModalLongTitle").text("אישור דירוגים לתחרות");
+
+
+            console.log(data);
+            $("#modal-body").text('')
+            $("#modal-body").html('<table class="table table-striped" id="partisipantstbl"><tr><th>מספר שחקן</th><th>שם פרטי</th><th>שם משפחה</th><th>כינוי</th><th>דירוג</th><th>ניקוד</th></tr></table>')
+
+            gamersarray = data;
+
+            var base = 0;
+            var counter = 0;
+
+
+            for (let key in gamersarray) {
+                $("#partisipantstbl").append('<tr id="' + key + '"><td>' + key + '</td></tr>')
+                participants = participants + 1;
+                gamersids[counter] = key;
+                counter = counter + 1;
+                for (var i = 0; i < gamersarray[key].length; i++) {
+
+                    $("#" + key + "").append('<td>' + gamersarray[key][i] + '</td>')
+                }
+
+            }
+
+            var tablestr = "<table class='table table - striped' id='percentage'><tr><th></th><th>מקום ראשון</th><th>מקום שני</th><th>מקום 3-4</th><th>מקום 5-8</th><th>יתר</th></tr></table>"
+            var trstr = '';
+
+
+            if (participants < 4) {
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='0' size='1' id='rank1'/></td><td><input type='text' value='0' size='1' id='rank2'/></td><td><input type='text' value='0' size='1' id='rank3'/></td><td><input type='text' value='0' size='1' id='rank4'/></td><td><input type='text' value='0' size='1' id='rank5'/></td></tr>"
+
+            }
+            else if (participants > 3 && participants < 6) {
+                base = 10
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 1) + "' size='1' id='rank1'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank2'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank3'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank4'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank5'/></td></tr>"
+            }
+            else if (participants > 5 && participants < 9) {
+                base = 20
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.7) + "' size='1' id='rank1'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.3) + "' size='1' id='rank2'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank3'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank4'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank5'/></td></tr>"
+            }
+            else if (participants > 8 && participants < 17) {
+                base = 30
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.5) + "' size='1' id='rank1'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.22) + "' size='1' id='rank2'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.08) + "' size='1' id='rank3'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.03) + "' size='1' id='rank4'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank5'/></td></tr>"
+            }
+            else if (participants > 16 && participants < 25) {
+                base = 40
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.5) + "' size='1' id='rank1'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.22) + "' size='1' id='rank2'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.08) + "' size='1' id='rank3'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.03) + "' size='1' id='rank4'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank5'/></td></tr>"
+            }
+            else if (participants > 24 && participants < 33) {
+                base = 50
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.5) + "' size='1' id='rank1'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.22) + "' size='1' id='rank2'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.08) + "' size='1' id='rank3'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.03) + "' size='1' id='rank4'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank5'/></td></tr>"
+            }
+            else if (participants > 32) {
+                base = 60
+                trstr = "<tr><td>אחוז מבסיס</td><td><input type='text' value='0.5' size='1' id='basePercent1' onchange='changeRank(1)'/></td><td><input type='text' value='0.22' size='1' id='basePercent2' onchange='changeRank(2)'/></td><td><input type='text' value='0.08' size='1' id='basePercent3' onchange='changeRank(3)'/></td><td><input type='text' value='0.03' size='1'id='basePercent4' onchange='changeRank(4)'/></td><td><input type='text' value='0' size='1'id='basePercent5' onchange='changeRank(5)'/></td></tr>";
+                trstr += "<tr><td>ניקוד</td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.5) + "' size='1' id='rank1'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.22) + "' size='1' id='rank2'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.08) + "' size='1' id='rank3'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier * base * 0.03) + "' size='1' id='rank4'/></td><td><input type='text' value='" + Math.round(proCmultiplier * Cmultiplier) + "' size='1' id='rank5'/></td></tr>"
+
+
+            }
+
+
+
+            $("#modal-body").append("<h5>ניקוד התחרות<h5>");
+            $("#modal-body").append("<label for='participants'>משתתפים:</label> <input type = 'text' id='participants' name='participants' value='" + participants + "' size='4' disabled ><label for='Cmultiplier'>בסיס:</label> <input type = 'text' id='base' name='Cmultiplier' value='" + base + "'size='2' onchange='changeBase()' > <br><br>");
+            $("#modal-body").append("<label for='Ckind'>סוג התחרות:</label> <input type = 'text' id='Ckind' name='Ckind' value='" + Ckind + "' size='6' disabled ><label for='Cmultiplier'>מכפיל:</label> <input type = 'text' id='Cmultiplier' name='Cmultiplier' value='" + Cmultiplier + "'size='2' onchange='changeBase()'><br><br>");
+            $("#modal-body").append("<label for='Ckind'>קטגוריה:</label> <input type = 'text' id='Ckind' name='Ckind' value='" + Pro + "' size='6' disabled ><label for='Cmultiplier'>מכפיל:</label> <input type = 'text' id='proCmultiplier' name='Cmultiplier' value='" + proCmultiplier + "'size='2' onchange='changeBase()'>");
+            $("#modal-body").append("<h5 class='mt-3'>אחוזי ניקוד לדירוג<h5>");
+            $("#modal-body").append(tablestr);
+            $("#percentage").append(trstr)
+
+
+
+        }
+
+        function ShowParticipents() {
+            ajaxCall("GET", "../api/Competitions/mark5?CId=" + CId + "&statusval=" + 1, "", getSuccessParticipents, getErrorRanks); //Edit_Competitions.html - method SC6
+
+        }
+
+        function getSuccessParticipents(data) {
+            $("#exampleModalLongTitle").text("משתתפים");
+            $("#modal-body").text('')
+            $("#modal-body").html('<table class="table table-striped" id="partisipantstbl"><tr><th>מספר שחקן</th><th>שם פרטי</th><th>שם משפחה</th><th>כינוי</th><th>דירוג</th><th>ניקוד</th></tr></table>')
+            $("#saverank").hide();
+            $("#rejectranks").hide()
+            $("#acceptranks").hide()
+            $("#closeModal").show()
+
+
+            var gamersarray = data;
+
+
+            for (let key in gamersarray) {
+                $("#partisipantstbl").append('<tr id="' + key + '"><td>' + key + '</td></tr>')
+
+                for (var i = 0; i < gamersarray[key].length; i++) {
+                    $("#" + key + "").append('<td>' + gamersarray[key][i] + '</td>')
+                }
+            }
+
+
+        }
+
+        function changeRank(num) {
+            var rank = $('#basePercent' + num).val() * $('#Cmultiplier').val() * $('#proCmultiplier').val() * $('#base').val();
+            rank = Math.round(rank)
+            $('#rank' + num).val(rank)
+        }
+
+        function changeBase() {
+            for (var i = 0; i < 5; i++) {
+                var rank = $('#basePercent' + i).val() * $('#Cmultiplier').val() * $('#proCmultiplier').val() * $('#base').val();
+                rank = Math.round(rank)
+                $('#rank' + i).val(rank)
+            }
+        }
+
+        function getErrorRanks(err) {
+            console.log(err);
+        }
+
+        function decideNewC(val) {
+
+            ajaxCall("PUT", "../api/Competitions/decideC?cID=" + CId + "&statusvalue=" + val, "", decideCsuccess, decideCerr) //Edit_Competitions.html - method SC7
+        }
+
+        function decideCsuccess(data) {
+            swal("הפעולה בוצעה בהצלחה");
+            location.replace("Manager_Main_Page.html");
+        }
+
+        function decideCerr(err) {
+            console.log(err)
+        }
+
+        function getSuccessCg(gc) {
+
+            console.log("Game Category is: ", gc);
+            GameCategories = gc;
+            var stringstatus;
+
+            $("#orgenaizerName").text(gc.Categoryname);
+
+
+            if (gc.Status1 == 1) {
+                stringstatus = "תחרות ממתינה לאישור";
+            }
+            else if (gc.Status1 == 2) {
+                stringstatus = "תחרות מאושרת";
+            }
+            else if (gc.Status1 == 3) {
+                stringstatus = "תחרות נדחתה";
+            }
+            else if (gc.Status1 == 4) {
+                stringstatus = "ממתין להזנת דירוגים ע''י מארגן";
+            }
+            else if (gc.Status1 == 5) {
+                stringstatus = "ממתין לאישור דירוגים ע''י מנהל";
+            }
+            else if (gc.Status1 == 6) {
+                stringstatus = "דירוגים נדחו";
+            }
+            else if (gc.Status1 == 7) {
+                stringstatus = "דירוגים אושרו - תחרות הסתיימה";
+            }
+            else if (gc.Status1 == 8) {
+                stringstatus = "דירוגים שונו ע''י מנהל - תחרות הסתיימה";
+            }
+
+            $("#competitionStatus").text(stringstatus);
+
+        };
+
+        function getErrorCg(err) {
+
+            console.log(err)
+        }
+
+        function getSuccessC(data) {
+
+            if (data.Competitionstatus == '1') {
+                $("#previewC").show();
+                $("#rejectC").show();
+                $("#acceptC").show();
+                $("#cancelEdit").hide();
+                $("#rankEdit").hide();
+                $("#submitedit").show();
+                $("#ParticipentsBTN").hide();
+                $("#CancelC").hide();
+
+            }
+            else if (data.Competitionstatus == '2') {
+                $("#previewC").show();
+                $("#rejectC").hide();
+                $("#acceptC").hide();
+                $("#cancelEdit").hide();
+                $("#rankEdit").hide();
+                $("#submitedit").show();
+                $("#ParticipentsBTN").hide();
+                $("#CancelC").hide();
+
+
+            }
+            else if (data.Competitionstatus == '3') {
+                $("#previewC").hide();
+                $("#rejectC").hide();
+                $("#acceptC").hide();
+                $("#cancelEdit").hide();
+                $("#rankEdit").hide();
+                $("#submitedit").hide();
+                $("#ParticipentsBTN").hide();
+                $("#CancelC").hide();
+
+
+            }
+            else if (data.Competitionstatus == '4') {
+                $("#previewC").show();
+                $("#rejectC").hide();
+                $("#acceptC").hide();
+                $("#cancelEdit").hide();
+                $("#rankEdit").hide();
+                $("#submitedit").show();
+                $("#ParticipentsBTN").hide();
+                $("#CancelC").hide();
+
+
+            }
+            else if (data.Competitionstatus == '5') {
+                $("#previewC").show();
+                $("#rejectC").hide();
+                $("#acceptC").hide();
+                $("#cancelEdit").hide();
+                $("#rankEdit").show();
+                $("#submitedit").show();
+                $("#ParticipentsBTN").hide();
+                $("#CancelC").hide();
+
+            }
+            else if (data.Competitionstatus == '6') {
+                $("#previewC").hide();
+                $("#rejectC").hide();
+                $("#acceptC").hide();
+                $("#cancelEdit").hide();
+                $("#rankEdit").hide();
+                $("#submitedit").hide();
+                $("#ParticipentsBTN").hide();
+                $("#CancelC").hide();
+
+            }
+            else if (data.Competitionstatus == '7') {
+                $("#previewC").hide();
+                $("#rejectC").hide();
+                $("#acceptC").hide();
+                $("#cancelEdit").hide();
+                $("#rankEdit").hide();
+                $("#submitedit").hide();
+                $("#ParticipentsBTN").show();
+                $("#CancelC").show();
+
+            }
+            else if (data.Competitionstatus == '8') {
+                $("#previewC").hide();
+                $("#rejectC").show();
+                $("#acceptC").hide();
+                $("#cancelEdit").show();
+                $("#rankEdit").show();
+                $("#submitedit").show();
+                $("#CancelC").show();
+            }
+
+            console.log(data)
+
+            logoURL = data.Logo;
+            bannerURL = data.Banner;
+
+            let startdDB = data.Startdate.split("T")
+            $('#startdDB').val(startdDB[0]);
+
+            let enddDB = data.Enddate.split("T")
+            $("#enddDB").val(enddDB[0])
+
+            let ldfr = data.Lastdateforregistration.split("T")
+            $("#ldfrDB").val(ldfr[0])
+
+            if (data.Isonline == 1)
+                $("#online").prop("checked", true);
+            else {
+                $("#offline").prop("checked", true);
+                $("#addressTB").val(data.Address1);
+            }
+
+            if (data.Ispayment == 1)
+                $("#payment").prop("checked", true);
+            else
+                $("#free").prop("checked", true);
+
+            if (data.Ispro == 1) {
+                $("#cPro").prop("checked", true);
+                Pro = 'מקצועי';
+                proCmultiplier = 2;
+            }
+            else {
+                $("#cAma").prop("checked", true);
+                Pro = 'חובבני';
+                proCmultiplier = 1;
+            }
+
+            let Banner1 = "<img src='../" + bannerURL + "' class='img-fluid' alt='Logo'/>";
+            document.getElementById("bannerph").innerHTML = Banner1;
+
+            let Logo1 = "<img src='../" + logoURL + "' class='img-fluid' alt='Logo'/>";
+            document.getElementById("logoph").innerHTML = Logo1;
+
+            if (data.Kind == 1) {
+                $("#cOn").prop("checked", true);
+                Ckind = 'אונליין';
+                Cmultiplier = 1
+
+            }
+            else if (data.Kind == 2) {
+                $("#cCF").prop("checked", true);
+                Ckind = 'משולב גמר'
+                Cmultiplier = 1.5
+            }
+            else if (data.Kind == 3) {
+                $("#cCHF").prop("checked", true);
+                Ckind = 'משולב חצי גמר/אופליין'
+                Cmultiplier = 2
+            }
+
+
+
+
+            $("#cnameTB").val(data.Competitionname)
+            $("#prize1TB").val(data.Prize1),
+                $("#prize2TB").val(data.Prize2),
+                $("#prize3TB").val(data.Price3),
+                $("#urlcommunityTB").val(data.Linkforregistration),
+                $("#descriptionTA").val(data.Body),
+                $("#starttTB").val(data.Startime),
+                $("#endtTB").val(data.Endtime),
+                $("#cdiscordTB").val(data.Discord),
+                $("#consoleDB").val(data.Console),
+                $("#checkin1TB").val(data.Startcheckin),
+                $("#checkin2TB").val(data.Endcheckin),
+                $('#ccategoriesDB').val(GameCategories.Categoryid);
+            //Isiesa: 0,
+            //Competitionstatus: 'S',
+
+        }
+
+        function getErrorC(err) { console.log(err) }
+
+        function PreviewBuilder() {
+
+            var tradio = $('input[name=radio-type]:checked'); //get competition type (Pro or Amateurs)
+            var ctype = tradio.attr('id');
+            if (ctype == "cPro")
+                ctype = 1;
+            else
+                ctype = 0;
+            var oradio = $('input[name=radio-online]:checked'); //get is online?
+            var conline = oradio.attr('id');
+
+            if (conline == "online") {
+                conline = 1;
+                address = "";
+            }
+
+            else {
+                conline = 0;
+                address = $("#addressTB").val()
+            }
+
+
+            var pradio = $('input[name=radio-payment]:checked'); //get need payment?
+            var cpayment = pradio.attr('id');
+            if (cpayment = "payment")
+                cpayment = 1;
+            else
+                cpayment = 0;
+
+            let p1 = {
+                Competitionname: $("#cnameTB").val(),
+                Isonline: conline,
+                Address1: address,
+                Banner: bannerURL,
+                Logo: logoURL,
+                Prize1: $("#prize1TB").val(),
+                Prize2: $("#prize2TB").val(),
+                Price3: $("#prize3TB").val(),
+                Linkforregistration: $("#urlcommunityTB").val(),
+                Lastdateforregistration: $("#ldfrDB").val(),
+                Body: $("#descriptionTA").val(),
+                Startdate: $("#startdDB").val(),
+                Enddate: $("#enddDB").val(),
+                Startime: $("#starttTB").val(),
+                Endtime: $("#endtTB").val(),
+                Ispro: ctype,
+                Discord: $("#cdiscordTB").val(),
+                Console: $("#consoleDB").val(),
+                Isiesa: 0,
+                Competitionstatus: 'S',
+                Ispayment: cpayment,
+                Startcheckin: $("#checkin1TB").val(),
+                Endcheckin: $("#checkin2TB").val(),
+                Gamecategory: $("#ccategoriesDB option:selected").text()
+            }
+
+            ajaxCall("POST", "../api/Competitions/mark2", JSON.stringify(p1), postSuccessP, postErrorP); //Edit_Competitions.html - method SC8
+            window.open("https://localhost:44318/Pages/Competition_Preview.html"); //need to change the URL after publish project
+
+        }
+
+        function postSuccessP(data) {
+            console.log(data)
+        }
+
+        function postErrorP(err) {
+            console.log(err)
+        }
+
+        function postSuccessC(data) {
+            console.log("C Success", data);
+
+
+            var gcID = document.getElementById("ccategoriesDB").value;
+            var oID = JSON.parse(localStorage.getItem("user_info"));
+
+
+            ajaxCall("PUT", "../api/Competitions?cID=" + CId + "&gcID=" + gcID, "", putSuccessCInG, putErrorCInG) //Edit_Competitions.html - method SC9
+
+
+        }
+
+        function putSuccessCInG(data) {
+            console.log(data);
+            swal("התחרות עודכנה בהצלחה!")
+
+            setTimeout(function () {
+                location.replace("Manager_Main_Page.html");
+            }, 2500);
+
+        }
+
+        function putErrorCInG(err) {
+            console.log("ERR ")
+            console.log(err);
+
+        }
+
+        function postErrorC(err) {
+            console.log(err)
+
+        }
+
+        function addBanner() {
+
+            var data = new FormData();
+            banner = $("#bannerFile").get(0).files;
+            //logo = $("#logoFile").get(0).files;
+
+            var files = banner;
+
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("CompetitionID", CId + "_banner"); //append what ever data you want to send along with the files.
+
+
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../api/FileUpload/mark1",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: routeBanner,
+                error: error
+            });
+
+            return false;
+        }
+
+        function routeBanner(data) {
+            if ($('#bannerFile').val() !== "")
+                bannerURL = data[0]
+            console.log("In url's: ", bannerURL);
+            addLogo();
+
+            return false;
+        }
+
+        function addLogo() {
+
+            var data = new FormData();
+
+            logo = $("#logoFile").get(0).files;
+
+            var files = logo;
+
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("CompetitionID", CId + "_logo"); //append what ever data you want to send along with the files.
+
+
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../api/FileUpload/mark1",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: routeLogo,
+                error: error
+            });
+
+            return false;
+        }
+
+        function routeLogo(data) {
+            if ($('#logoFile').val() !== "")
+                logoURL = data[0]
+            console.log("In url's: ", logoURL);
+            CompetitionBuilder();
+            return false;
+        }
+
+        function error(err) {
+            console.log(err);
+
+        }
+
+        function CompetitionBuilder() { //PUT
+
+            var tradio = $('input[name=radio-type]:checked'); //get competition type (Pro or Amateurs)
+            var ctype = tradio.attr('id');
+            if (ctype == "cPro")
+                ctype = 1;
+            else
+                ctype = 0;
+
+            var oradio = $('input[name=radio-online]:checked'); //get is online?
+            var conline = oradio.attr('id');
+            if (conline == "online") {
+                conline = 1;
+                address = "";
+            }
+
+            else {
+                conline = 0;
+                address = $("#addressTB").val()
+            }
+
+            var pradio = $('input[name=radio-payment]:checked'); //get need payment?
+            var cpayment = pradio.attr('id');
+            if (cpayment = "payment")
+                cpayment = 1;
+            else
+                cpayment = 0;
+
+            let c1 = {
+                Competitionname: $("#cnameTB").val(),
+                Isonline: conline,
+                Address1: address,
+                Banner: bannerURL,
+                Logo: logoURL,
+                Prize1: $("#prize1TB").val(),
+                Prize2: $("#prize2TB").val(),
+                Price3: $("#prize3TB").val(),
+                Linkforregistration: $("#urlcommunityTB").val(),
+                Lastdateforregistration: $("#ldfrDB").val(),
+                Body: $("#descriptionTA").val(),
+                Startdate: $("#startdDB").val(),
+                Enddate: $("#enddDB").val(),
+                Startime: $("#starttTB").val(),
+                Endtime: $("#endtTB").val(),
+                Ispro: ctype,
+                Discord: $("#cdiscordTB").val(),
+                Console: $("#consoleDB").val(),
+                Isiesa: 0,
+                Competitionstatus: 'S',
+                Ispayment: cpayment,
+                Startcheckin: $("#checkin1TB").val(),
+                Endcheckin: $("#checkin2TB").val()
+            }
+
+
+            ajaxCall("PUT", "../api/Competitions/updatedetails?CID=" + CId, JSON.stringify(c1), postSuccessC, postErrorC) //Edit_Competitions.html - method SC10
+            return false;
+
+        }
+
+        function GetAllGameCategories() {
+
+            ajaxCall("GET", "../api/GamesCategories", "", getSuccessGamesCategories, getErrorGamesCategories); //Edit_Competitions.html - method MC1
+
+        }
+
+        function getSuccessGamesCategories(GamesCategories) {
+            console.log("GameCategories: ", GamesCategories)
+            GamesCategoriesArray = GamesCategories;
+            strOption = "";
+            for (var i = 0; i < GamesCategories.length; i++) { //Add Games Categories to drop list
+                strOption += ' <option value="' + GamesCategories[i].Categoryid + '">' + GamesCategories[i].Categoryname + '</option> '
+            }
+            $("#ccategoriesDB").append(strOption);
+        }
+
+        function getErrorGamesCategories(err) {
+            console.log(err)
+        }
+
+        //Counter chars in competition descreption (text area)
+        function countChar(val) {
+            var len = val.value.length;
+            if (len >= 1001) {
+                val.value = val.value.substring(0, 1001);
+            } else {
+                str = '';
+                str = "1000/" + (len);
+                $('#charNum').text(str);
+            }
+        };
+
+        function addPreview(img) {
+
+            imgType = img;
+
+            counterimage = counterimage + 1;
+
+            if (counterimage > 2303) { //Security: User Wont be able to upload more then 3 pictures to the server
+                counterimage = 2300;
+            }
+
+            var data = new FormData();
+
+            if (imgType == '_logo') {
+                var files = $("#logoFile").get(0).files;
+            }
+            else { //imgType == _banner
+                var files = $("#bannerFile").get(0).files;
+            }
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("CompetitionID", counterimage); //append what ever data you want to send along with the files.
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../Api/FileUpload",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: imagePreview,
+                error: error
+            });
+
+            return false;
+        }
+
+        function imagePreview(data) {
+
+            var imgStr = "";
+
+            if (Array.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    imgStr = "<img src='../" + data[i] + "' class='' alt='PreviewImg'/>"; //instead of +=
+                }
+            }
+
+
+            else {
+                imgStr = "<img src='../" + data + "'/>";
+            }
+
+            if (imgType == '_logo') {
+                document.getElementById("logoph").innerHTML = imgStr;
+                if ($('#logoFile').val() !== "")
+                    logoURL = data[0];
+            }
+            else {
+                document.getElementById("bannerph").innerHTML = imgStr;
+                if ($('#bannerFile').val() !== "")
+                    bannerURL = data[0];
+            }
+
+        }
+
+        function EditRanks() {
+            console.log("In edit rankS:");
+            $("#exampleModalLongTitle").text("shir")
+        }
+
+
+    </script>
+
+
+</head>
+<body>
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title">
+                <a class="titlelink" href="Manager_Main_Page.html">אזור אישי </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <h2 class="headh2">עריכת פרטי תחרות</h2>
+                <div class="row">
+                    <div class="col-10"></div>
+                    <div class="col-2">
+                        <button id="previewC" class="btn btn-outline-danger"> <i class="bi bi-arrow-up-right-square"></i> תצוגה מקדימה  </button>
+                    </div>
+                </div>
+                <div class="divdown"></div>
+            </section>
+
+            <form id="cForm" class="was-validated">
+                <div class="row">
+
+                    <!--Right column here: -->
+                    <div class="col">
+                        <div class="mb-3">
+                            <label>כותרת:</label>
+                            <input type="text" class="form-control" placeholder="כותרת תחרות" id="cnameTB" pattern=".{2,100}"
+                                   oninvalid="this.setCustomValidity('עד 100 תווים.')"
+                                   oninput="this.setCustomValidity('')" required>
+                        </div> <!--title -->
+
+                        <div class="mb-3">
+                            <label>קטגוריית משחק:</label><br />
+                            <div id="gameg">
+                                <select name="gamecategories" class="form-select" id="ccategoriesDB" required>
+                                    <option />
+                                </select>
+                            </div>
+                        </div> <!--game category-->
+
+                        <div class="mb-3">
+                            <label>קונסולה:</label>
+                            <select name="gamecategories" class="form-select" id="consoleDB" required>
+                                <option hidden selected></option>
+                                <option value="PS"> PS</option>
+                                <option value="XBOX"> XBOX</option>
+                                <option value="PC"> PC</option>
+                            </select>
+                        </div> <!--console-->
+
+                        <div class="mb-3">
+                            <label>קישור לאתר התחרות:</label>
+                            <input type="url" class="form-control" placeholder='הכנס כתובת הקהילה כאן' id="urlcommunityTB"
+                                   oninvalid="this.setCustomValidity('הכנס כתובת אתר אינטרנט')"
+                                   oninput="this.setCustomValidity('')" required>
+                        </div> <!--link for register-->
+
+                        <div class="mb-3">
+                            <label>דיסקורד לתחרות:</label>
+                            <input type="url" class="form-control" placeholder='הכנס כתובת דיסקורד לתחרות' id="cdiscordTB"
+                                   oninvalid="this.setCustomValidity('הכנס כתובת דיסקורד לתחרות')"
+                                   oninput="this.setCustomValidity('')">
+                        </div> <!--discord-->
+
+                        <div class="row mb-3">
+                            <label>פרסים:</label>
+                            <div class="col">
+                                <label>מקום ראשון</label>
+                                <input type="text" class="form-control" placeholder="₪" id="prize1TB">
+                            </div>
+
+                            <div class="col">
+                                <label>מקום שני</label>
+                                <input type="text" class="form-control" placeholder="₪" id="prize2TB">
+                            </div>
+
+                            <div class="col">
+                                <label>מקום שלישי</label>
+                                <input type="text" class="form-control" placeholder="₪" id="prize3TB">
+                            </div>
+                        </div> <!--prize-->
+
+                        <div class="row">
+                            <div class="col">
+                                <label>תחרות און ליין:</label>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="online" name="radio-online" required>
+                                    <label class="form-check-label" for="validationFormCheck1">כן</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="offline" name="radio-online" required>
+                                    <label class="form-check-label" for="validationFormCheck2">לא</label>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label>תחרות בתשלום:</label>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="payment" name="radio-payment" required>
+                                    <label class="form-check-label" for="validationFormCheck1">כן</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="free" name="radio-payment" required>
+                                    <label class="form-check-label" for="validationFormCheck2">לא</label>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label>סוג התחרות:</label>
+                                <div class="mb-3">
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cPro" name="radio-type" required>
+                                        <label class="form-check-label" for="validationFormCheck1">מקצועי</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cAma" name="radio-type" required>
+                                        <label class="form-check-label" for="validationFormCheck2">חובבנים</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label>אופי התחרות:</label>
+                                <div class="mb-3">
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cOn" name="radio-kind" value="1" required>
+                                        <label class="form-check-label" for="validationFormCheck1">אונליין</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cCF" name="radio-kind" value="2" required>
+                                        <label class="form-check-label" for="validationFormCheck2">משולב גמר</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cCHF" name="radio-kind" value="3" required>
+                                        <label class="form-check-label" for="validationFormCheck3">משולב חצי<br>גמר/אופליין</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!--radio buttons (online, payment, ispro, kind)-->
+
+                        <div class="mb-3" id="addressDIV">
+                        </div> <!--address-->
+                        <div id="toolBTN" class="rounded">
+                            <div id="wrapTool">
+                                <div class="row">
+
+                                    <h4 style="text-align:center; margin-bottom: 14px; color: #f3103a">בקרת ניהול</h4>
+
+                                    <div class="col-md-4"><b>שם המארגן:</b></div>
+                                    <div class="col" id="orgenaizerName">לא זמין</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4"><b>סטאטוס תחרות:</b></div>
+                                    <div class="col" id="competitionStatus">לא זמין</div>
+                                </div>
+                                <div class="row" style="margin-top: 25px; margin-bottom: 20px;">
+                                    <div class="col" id="BTNActions">
+
+                                        <input type="button" value="דירוגים" id="rankEdit" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" />
+                                        <input type="button" value="משתתפים" id="ParticipentsBTN" class="btn btn-info" data-toggle="modal" data-target="#exampleModalCenter" />
+                                        <input type="button" class="btn btn-danger" value="דחיית תחרות" id="rejectC" onclick="decideNewC('3')" />
+                                        <input type="button" class="btn btn-danger" value="ביטול תחרות" id="CancelC" onclick="swal('צריך לבטל את התחרות ואת הניקוד שניתן לכל המשתתפים בה')" />
+                                        <input type="button" class="btn btn-danger" value="ביטול" id="cancelEdit" />
+                                        <input type="button" class="btn btn-success" value="אישור תחרות" id="acceptC" onclick="decideNewC('4')" />
+                                        <input type="submit" class="btn btn-light" value="שמירת שינויים" id="submitedit" onsubmit="return false" />
+
+                                        <!--<button id="previewC" class="btn btn-outline-danger"> <i class="bi bi-arrow-up-right-square"></i> תצוגה מקדימה  </button>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Left column here: -->
+                    <div class="col">
+
+                        <div class="mb-3">
+                            <label>מועד אחרון לרישום:</label>
+                            <input type="date" class="form-control" placeholder='מועד אחרון לרישום' id="ldfrDB"
+                                   oninvalid="this.setCustomValidity('בחר מועד אחרון להרשמה')"
+                                   oninput="this.setCustomValidity('')" required />
+                        </div> <!--last date for registeration-->
+
+                        <div class="mb-3" style="padding-bottom: 9px;">
+                            <label>תיאור התחרות:</label>
+                            <textarea class="form-control" id="descriptionTA" placeholder="עד 1,000 תווים" onkeyup="countChar(this)"
+                                      oninvalid="this.setCustomValidity('עד 1000 תווים.')"
+                                      oninput="this.setCustomValidity('')" rows="4" required></textarea>
+                            <div id="charNum"></div> <!--this div show how many chars we used in textarea-->
+                        </div> <!--description-->
+
+                        <div class="row">
+                            <label>תאריך ושעת התחלה:</label>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="date" class="form-control" id="startdDB"
+                                           oninvalid="this.setCustomValidity('בחר מועד לתחילת התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="time" class="form-control" id="starttTB"
+                                           oninvalid="this.setCustomValidity('בחר שעה לתחילת התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+                        </div> <!--date and time start-->
+
+                        <div class="row">
+                            <label>תאריך ושעת סיום:</label>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="date" class="form-control" id="enddDB"
+                                           oninvalid="this.setCustomValidity('בחר מועד לסיום התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="time" class="form-control" id="endtTB"
+                                           oninvalid="this.setCustomValidity('בחר שעה לסיום התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+                        </div> <!--date and time end-->
+
+                        <div class="row">
+                            <label>צ'ק אין:</label>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>החל מ-</label>
+                                    <input type="time" class="form-control" id="checkin1TB"
+                                           oninvalid="this.setCustomValidity(`בחר שעת צ'ק אין`)"
+                                           oninput="this.setCustomValidity('')">
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>עד-</label>
+                                    <input type="time" class="form-control" id="checkin2TB"
+                                           oninvalid="this.setCustomValidity(`בחר שעת צ'ק אין`)"
+                                           oninput="this.setCustomValidity('')">
+                                </div>
+                            </div>
+                        </div> <!--check in-->
+
+                        <div class="row">
+
+                            <div class="col">
+                                <div class="form-group" method="post" enctype="multipart/form-data" id="formUpload">
+                                    <label for="file">לוגו תחרות:  </label>
+                                    <br />
+                                    <input type="file" id="logoFile" name="files" multiple="multiple" />
+                                    <p class="noteforfiles">הגודל המומלץ ללוגו 240x168</p>
+                                </div>
+                                <div>
+                                    <div class="mb-3 logofilePH" id="logoph"></div>
+                                </div>
+                            </div> <!--logo-->
+
+                            <div class="col">
+                                <div class="form-group" method="post" enctype="multipart/form-data">
+                                    <label for="file">באנר תחרות: </label>
+                                    <br />
+                                    <input type="file" id="bannerFile" name="files" multiple="multiple" />
+                                    <p class="noteforfiles">הגודל המומלץ לבאנר 970x250</p>
+                                </div>
+                                <div>
+                                    <div class="bannerfilePH" id="bannerph"></div>
+                                </div>
+                            </div> <!--banner-->
+
+
+                        </div>
+
+                        <div class="row" dir="ltr">
+
+                            <div class="col">
+                                <br /><br />  <br />
+
+
+                            </div>
+                        </div> <!--buttons-->
+
+                    </div>
+                </div>
+            </form>
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="modal-body" class="modal-body">
+                        </div>
+                        <div id='result'></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-dismiss="modal" id="rejectranks">דחיית דירוגים</button>
+                            <button type="button" class="btn btn-success" id="acceptranks">אישור דירוגים</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal" id="closeModal">סגור</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer-system">
+
+            <div class="sub-footer">
+                <div class="row">
+
+                    <div class="col" style="text-align:center">
+
+                        <p>לכל תקלה או שאלה על המערכת ניתן לכתוב לנו בדף יצירת קשר - למעבר לעמוד <a href="Contact.html">לחצו כאן</a></p>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+</body>
+</html>

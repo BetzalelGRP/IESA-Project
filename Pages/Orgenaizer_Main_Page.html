@@ -1,0 +1,634 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/orgenaizer_main_page.css" rel="stylesheet" />
+
+    <title>&#x202E; אזור אישי – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+
+    <script>
+
+        if (localStorage["user_type"] != 2) {
+            location.replace("index.html");
+        }
+
+        var fList = [];
+        var pList = [];
+        var gList = [];
+        var cgList = [];
+        var gamersIdList = [];
+        var selectedList = [];
+
+        var gamers = '';
+        var num = 1;
+        var numofp = 0;
+        var cID = 0;
+        var OID = JSON.parse(localStorage.getItem("user_info"));
+        console.log(OID.Userid);
+
+        $(document).ready(function () {
+
+            //Navbar
+            renderNavbar_Orgenaizer();
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+            GetAllOrgenaizerCompetition();
+            GetAllGamers();
+
+            $('#AllFCcards').hide();
+            $('#AllPCcards').hide();
+
+            localStorage["competition_Id"] = "";
+
+
+            $('#loadFCbtn').click(function () {
+                $('#AllFCcards').toggle()
+                $(this).text($(this).text() == 'צמצם' ? 'טען עוד' : 'צמצם');
+            });
+
+
+            $('#loadPCbtn').click(function () {
+                $('#AllPCcards').toggle()
+                $(this).text($(this).text() == 'צמצם' ? 'טען עוד' : 'צמצם');
+            });
+
+            $('#myModal').on('shown.bs.modal', function () {
+                $('#myInput').trigger('focus')
+            });
+
+
+
+            $('#saverank').click(addnewrank)
+
+            $('#closerank').click(function () {
+                localStorage["competition_Id"] = "";
+
+            });
+
+
+
+
+        });
+
+        function GetAllOrgenaizerCompetition() {
+
+            ajaxCall("GET", "../api/Competitions?OID=" + OID.Userid, "", getSuccessOrgenaizerCompetition, getErrorOrgenaizerCompetition); //Orgenaizer_Main_Page.html - method SC1
+        }
+
+        function getSuccessOrgenaizerCompetition(data) {
+            console.log("In success: ", data);
+
+
+
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].Competitionstatus == 1 || data[i].Competitionstatus == 2 || data[i].Competitionstatus == 4 || data[i].Competitionstatus == 5)
+                    fList.push(data[i]);
+                else
+                    pList.push(data[i]);
+            }
+
+            console.log("fList: ", fList)
+            console.log("pList: ", pList)
+
+            var loopFlist = 3;
+            var loopPlist = 3;
+
+            if (fList.length < 3)
+                loopFlist = fList.length
+            if (pList.length < 3)
+                loopPlist = pList.length
+
+            //Futures Competitions
+            for (var i = 0; i < loopFlist; i++) {
+                let edat = fList[i].Enddate.split("T");
+                edat = edat[0].split("-");
+                let edat1;
+                edat1 = new Date(edat[0] + '-' + edat[1] + '-' + edat[2]);
+                edat = edat[2] + '/' + edat[1] + '/' + edat[0]
+
+                let Stardate = fList[i].Startdate.split("T");
+                Stardate = Stardate[0].split("-");
+                Stardate = Stardate[2] + '/' + Stardate[1] + '/' + Stardate[0]
+                let timetorank;
+
+
+                let today = new Date(getDate())
+
+                if (today > edat1)
+                    timetorank = 30 - Math.ceil(Math.abs(today - edat1) / (1000 * 60 * 60 * 24))
+                else
+                    timetorank = Math.ceil(Math.abs(edat1 - today) / (1000 * 60 * 60 * 24))
+                var cardstr = '<div class="col-4 .mx-auto <div class="card " style="width: 18rem;">';
+                cardstr += '<a href=Competition_View.html?Competitions=' + fList[i].Competitionid + '> <img src="../' + fList[i].Logo + '" class="card-img-top" alt="LogoCompetitionMissed"> </a>';
+                cardstr += '<div class="card-body">';
+                cardstr += '<h5 class="card-title"></br>' + fList[i].Competitionname.substring(0, 20) + '</h5>';
+                cardstr += '<p class="card-text"> תחילת תחרות: ' + Stardate + '</p>';
+                cardstr += '<p class="card-text"> סיום תחרות:  ' + edat + '</p>';
+
+                if (fList[i].Competitionstatus == 1)
+                    cardstr += '<button type="button" class="btn btn-success" disabled>תחרות בבדיקת המערכת</button><p id="iconp"><i class="bi bi-hourglass-split" style="font-size: 2rem; color:yellow"></i></p> </div > </div ></div >';
+                else if (fList[i].Competitionstatus == 2)
+                    cardstr += '<button type="button" class="btn btn-secondary" disabled>הזנת תוצאות תחרות</button><p id="iconp"><i class="bi bi-check-square" style="font-size: 2rem; color:green"></i></p> </div > </div ></div >';
+                else if (fList[i].Competitionstatus == 4)
+                    cardstr += '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" onclick="setrank( fList[' + i + '] )">הזנת תוצאות תחרות</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-exclamation" style="font-size: 2rem; color: red"></i> נותרו' + " " + timetorank + " " + 'ימים להזנת התוצאות </p> </div > </div ></div >';
+                else if (fList[i].Competitionstatus == 5)
+                    cardstr += '<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#exampleModalCenter" onclick="showsentrank( fList[' + i + '] )">דירוגים נשלחו למנהל</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-hourglass-split" style="font-size: 2rem; color:yellow"></i> </p> </div > </div ></div >';
+                $("#FutureC").append(cardstr);
+
+            }
+            //All Futures Competitions
+            if (fList.length > 3) {
+                for (var i = 3; i < fList.length; i++) {
+
+                    let edat = fList[i].Enddate.split("T");
+                    edat = edat[0].split("-");
+                    let edat1;
+                    edat1 = new Date(edat[0] + '-' + edat[1] + '-' + edat[2]);
+                    edat = edat[2] + '/' + edat[1] + '/' + edat[0]
+
+                    let Stardate = fList[i].Startdate.split("T");
+                    Stardate = Stardate[0].split("-");
+                    Stardate = Stardate[2] + '/' + Stardate[1] + '/' + Stardate[0]
+                    let timetorank;
+
+
+
+
+                    let today = new Date(getDate())
+
+                    if (today > edat1)
+                        timetorank = 7 - Math.ceil(Math.abs(today - edat1) / (1000 * 60 * 60 * 24))
+                    else
+                        timetorank = Math.ceil(Math.abs(edat1 - today) / (1000 * 60 * 60 * 24))
+
+
+                    var cardstr = '<div class="col-4 .mx-auto mt-2"<div class="card " style="width: 18rem;">';
+                    cardstr += '<a href=Competition_View.html?Competitions=' + fList[i].Competitionid + '> <img src="../' + fList[i].Logo + '" class="card-img-top" alt="LogoCompetitionMissed"></a>';
+                    cardstr += '<div class="card-body">';
+                    cardstr += '<h5 class="card-title"></br>' + fList[i].Competitionname.substring(0, 20) + '</h5>';
+                    cardstr += '<p class="card-text"> תחילת תחרות: ' + Stardate + '</p>';
+                    cardstr += '<p class="card-text"> סיום תחרות:' + edat + '</p>';
+                    if (fList[i].Competitionstatus == 1)
+                        cardstr += '<button type="button" class="btn btn-success" disabled>תחרות בבדיקת המערכת</button><p id="iconp"><i class="bi bi-hourglass-split" style="font-size: 2rem ; color:yellow"></i></p> </div > </div ></div >';
+                    else if (fList[i].Competitionstatus == 2)
+                        cardstr += '<button type="button" class="btn btn-primary" disabled>הזנת תוצאות תחרות</button><p id="iconp"><i class="bi bi-check-square" style="font-size: 2rem ; color:green"></i></p> </div > </div ></div >';
+                    else if (fList[i].Competitionstatus == 4)
+                        cardstr += '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" onclick="setrank( fList[' + i + '] )">הזנת תוצאות תחרות</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-exclamation" style="font-size: 2rem; color: red"></i> נותרו' + " " + timetorank + " " + 'ימים להזנת התוצאות </p> </div > </div ></div >';
+                    else if (fList[i].Competitionstatus == 5)
+                        cardstr += '<button type="button" class="btn btn-secondary" disabled>דירוגים נשלחו למנהל.</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-hourglass-split" style="font-size: 2rem; color:yellow"></i> </p> </div > </div ></div >';
+
+                    $("#AllFutureC").append(cardstr);
+
+                }
+            }
+
+            //Past Competitions
+            for (var i = 0; i < loopPlist; i++) {
+
+                let edat = pList[i].Enddate.split("T");
+                edat = edat[0].split("-");
+
+
+                let Stardate = pList[i].Startdate.split("T");
+                Stardate = Stardate[0].split("-");
+                Stardate = Stardate[2] + '/' + Stardate[1] + '/' + Stardate[0];
+
+                let Enddate = edat[2] + '/' + edat[1] + '/' + edat[0];
+
+                var cardstr = '<div class="col-4 .mx-auto mt-2" <div class="card " style="width: 18rem;">';
+                cardstr += '<a href=Competition_View.html?Competitions=' + pList[i].Competitionid + '><img src="../' + pList[i].Logo + '" class="card-img-top" alt="LogoCompetitionMissed"></a>';
+                cardstr += '<div class="card-body">';
+                cardstr += '<h5 class="card-title"></br>' + pList[i].Competitionname.substring(0, 20) + '</h5>';
+                cardstr += '<p class="card-text"> תחילת תחרות: ' + Stardate + '</p>';
+                cardstr += '<p class="card-text"> סיום תחרות:' + Enddate + ' </p>';
+                if (pList[i].Competitionstatus == 3)
+                    cardstr += '<button type="button" class="btn btn-danger" disabled>תחרות נדחתה</button><p id="iconp"><i class="bi bi-x-square" style="font-size: 2rem ;color:red"></i></p> </div > </div ></div >';
+                else if (pList[i].Competitionstatus == 6)
+                    cardstr += '<button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Tooltip on top" disabled>דירוגים נדחו</button> <p id="iconp" style="font-size: 0.9rem"><i class="bi bi bi-x" style="font-size: 2rem; color:red"></i>תוצאות התחרות נדחו</p> </div > </div ></div >';
+                else if (pList[i].Competitionstatus == 7)
+                    cardstr += '<button type="button" class="btn btn-light" data-toggle="modal" data-target="#exampleModalCenter" onclick="renderGamers(pList[' + i + '])">משתתפים</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-check" style="font-size: 2rem; color:green"></i> תוצאות התחרות אושרו </p> </div > </div ></div >';
+                else if (pList[i].Competitionstatus == 8)
+                    cardstr += '<button type="button" class="btn btn-light" data-toggle="modal" data-target="#exampleModalCenter" onclick="renderGamers(pList[' + i + '])">משתתפים</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-check" style="font-size: 2rem; color:green"></i> התערבות מנהל </p> </div > </div ></div >';
+                $("#PastC").append(cardstr);
+            }
+            //All Past Competitions
+            if (pList.length > 3) {
+                for (var i = 3; i < pList.length; i++) {
+
+
+                    let edat = pList[i].Enddate.split("T");
+                    edat = edat[0].split("-");
+
+
+                    let Stardate = pList[i].Startdate.split("T");
+                    Stardate = Stardate[0].split("-");
+                    Stardate = Stardate[2] + '/' + Stardate[1] + '/' + Stardate[0]
+
+                    let Enddate = edat[2] + '/' + edat[1] + '/' + edat[0]
+
+                    var cardstr = '<div class="col-3 .mx-auto " <div class="card " style="width: 18rem;">';
+                    cardstr += '<a href=Competition_View.html?Competitions=' + pList[i].Competitionid + '><img src="../' + pList[i].Logo + '" class="card-img-top" alt="LogoCompetitionMissed"></a>';
+                    cardstr += '<div class="card-body">';
+                    cardstr += '<h5 class="card-title"></br>' + pList[i].Competitionname.substring(0, 20) + '</h5>';
+                    cardstr += '<p class="card-text"> תחילת תחרות: ' + Stardate + '</p>';
+                    cardstr += '<p class="card-text"> סיום תחרות:' + Enddate + ' </p>';
+                    if (pList[i].Competitionstatus == 3)
+                        cardstr += '<button type="button" class="btn btn-danger" disabled>תחרות נדחתה</button><p id="iconp"><i class="bi bi-x-square" style="font-size: 2rem ;color:red"></i></p> </div > </div ></div >';
+                    else if (pList[i].Competitionstatus == 6)
+                        cardstr += '<button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="מנהל מערכת דחה את הדירוגים שהזנת"  disabled>דירוגים נדחו</button> <p id="iconp" style="font-size: 0.9rem"><i class="bi bi bi-x" style="font-size: 2rem; color:red"></i>תוצאות התחרות נדחו</p> </div > </div ></div >';
+                    else if (pList[i].Competitionstatus == 7)
+                        cardstr += '<button type="button" class="btn btn-light" data-toggle="modal" data-target="#exampleModalCenter" onclick="renderGamers(pList[' + i + '])">משתתפים</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-check" style="font-size: 2rem; color:green"></i> תוצאות התחרות אושרו </p> </div > </div ></div >';
+                    else if (pList[i].Competitionstatus == 8)
+                        cardstr += '<button type="button" class="btn btn-light" data-toggle="modal" data-target="#exampleModalCenter" onclick="renderGamers(pList[' + i + '])">משתתפים</button><p id="iconp" style="font-size: 0.9rem"><i class="bi bi-check" style="font-size: 2rem; color:green"></i> התערבות מנהל </p> </div > </div ></div >';
+                    $("#AllPastC").append(cardstr);
+                }
+
+            }
+
+        }
+
+        function getErrorOrgenaizerCompetition(err) {
+            console.log(err);
+        }
+
+        function GetAllGamers() {
+            ajaxCall("GET", "../api/Gamers/mark3", "", getSuccessGamers, getErrorGamers); //Orgenaizer_Main_Page.html - method SG1
+        }
+
+        function getSuccessGamers(data) {
+            console.log("Gamers: ", data);
+            gList = data;
+
+
+        }
+
+        function getErrorGamers(err) {
+            console.log("In E: ", err);
+        }
+
+        function setrank(c) {
+            cID = c.Competitionid;
+            $("#exampleModalLongTitle").html(c.Competitionname);
+            localStorage["competition_Id"] = JSON.stringify(c.Competitionid);
+            $("#modal-body").text(" ");
+            $("#saverank").show();
+            $("#modal-body").html("<div id='inputnumbers'></div><div id='renderinputs'></div>");
+
+            let tbl = "<table id=inputtbl></table>";
+
+            $("#inputnumbers").append("בחור כמות משתתפים: " + "<input type='number' id='numofparticipants' onchange='selectrankgamers(" + c.Competitionid + ")'/>");
+
+            $("#renderinputs").append(tbl);
+
+
+            g1 = "";
+            gamers = "";
+            num = 1;
+
+            //options builder
+            for (var i = 0; i < gList.length; i++) {
+
+                g1 = "שם פרטי: " + gList[i].Firstname + " | ";
+                g1 += "שם משפחה: " + gList[i].Lastname + " | ";
+                g1 += "כינוי: " + gList[i].Nickname + " | ";
+                g1 += "אימייל: " + gList[i].Email + " | ";
+                g1 += "טלפון: " + gList[i].Phone;
+
+                gamers += "<option value='" + gList[i].Userid + "'>" + g1 + "</option> "
+            }
+
+
+
+        }
+
+        function showsentrank(c) {
+
+            cID = c.Competitionid;
+            ajaxCall("GET", "../api/Competitions/mark5?CId=" + cID + "&statusval=" + 0, "", getSuccessParticipents, getErrorRanks); //Edit_Competitions.html - method SC6
+
+        }
+
+        function getSuccessParticipents(data) {
+            $("#exampleModalLongTitle").text("משתתפים:");
+            $("#modal-body").text('')
+            $("#modal-body").html('<table class="table table-striped" id="partisipantstbl"><tr><th>מספר שחקן</th><th>שם פרטי</th><th>שם משפחה</th><th>כינוי</th><th>דירוג</th><th>ניקוד</th></tr></table>')
+
+            var gamersarray = data;
+
+            for (let key in gamersarray) {
+                $("#partisipantstbl").append('<tr id="' + key + '"><td>' + key + '</td></tr>')
+
+                for (var i = 0; i < gamersarray[key].length; i++) {
+                    $("#" + key + "").append('<td>' + gamersarray[key][i] + '</td>')
+                }
+
+            }
+
+
+
+        }
+
+        function getErrorRanks(err) {
+            console.log(err)
+        }
+        function selectrankgamers(cID) {
+            numofp = $("#numofparticipants").val();
+            $("#inputtbl").text("");
+            num = 1;
+
+            for (var j = 1; j <= numofp; j++) {
+                dropd = "<input list = 'brow' onchange='validationfunc()' placeholder = 'בחר שחקן במקום ה- " + num + "' id='selctedval" + j + "'  /> <datalist id='brow'> " + gamers + "</datalist>";
+                $("#inputtbl").append("<tr><td>#" + num + "</td> <td>" + dropd + "</td><td id='errorval" + j + "' class='errvalidation'> </td> </tr>");
+                num = num + 1;
+            }
+        }
+
+        function addnewrank() {
+
+            var CID = JSON.parse(localStorage.getItem("competition_Id"))
+
+            var counter = 0
+
+            for (var i = 1; i <= numofp; i++) {
+                console.log("input :", i, "gamer: ", $('#selctedval' + i + '').val())
+            }
+
+            for (var i = 1; i <= numofp; i++) {
+                selectedList[i - 1] = ($('#selctedval' + i + '').val());
+            }
+
+            for (var i = 0; i < selectedList.length; i++) {
+                if (selectedList[i] == "")
+                    $('#errorval' + (i + 1) + '').text("לא בחרת שחקן");
+            }
+
+            for (var i = 0; i < selectedList.length; i++) {
+                if ($('#errorval' + (i + 1)).text() == "")
+                    counter++;
+            }
+
+            var Ranksarr = []
+            if (counter == numofp && counter > 0) {
+
+                console.log("reaqdy in: ", cID)
+
+                for (var i = 0; i < numofp; i++) {
+                    RanksObj = {
+                        Competitionid: cID,
+                        Gamerid: selectedList[i],
+                        Rank1: i + 1
+                    }
+                    Ranksarr.push(RanksObj)
+                }
+                console.log("rankarr: ", Ranksarr)
+
+                ajaxCall("POST", "../api/Competitions/mark6", JSON.stringify(Ranksarr), SuccessInsertRanks, ErrorInsertRanks); //Orgenaizer_Main_Page.html - method SC2
+
+            }
+        }
+
+        function SuccessInsertRanks(data) {
+            console.log(data)
+            swal("דירוגים נשלחו למערכת העמותה בהצלחה!");
+            setTimeout(function () {
+                location.reload();
+            }, 3500);
+        }
+
+        function ErrorInsertRanks(ex) {
+            console.log(ex)
+        }
+
+        function validationfunc() {
+
+            var CID = JSON.parse(localStorage.getItem("competition_Id"))
+
+            for (var i = 1; i <= numofp; i++) {
+                console.log("input :", i, "gamer: ", $('#selctedval' + i + '').val())
+                selectedList[i - 1] = ($('#selctedval' + i + '').val());
+            }
+
+            for (var i = 0; i < gList.length; i++) {
+                gamersIdList[i] = JSON.stringify(gList[i].Userid)
+            }
+
+            for (var i = 0; i < selectedList.length; i++) {
+
+                if (gamersIdList.includes(selectedList[i]) == false)
+                    $('#errorval' + (i + 1) + '').text("שחקן לא קיים")
+                else
+                    $('#errorval' + (i + 1) + '').text("")
+                for (var j = i + 1; j <= selectedList.length; j++) {
+
+                    if (selectedList[i] == selectedList[j])
+                        $('#errorval' + (i + 1) + '').text("בחרת כבר בשחקן הזה")
+                    else
+                        $('#errorval' + (i + 1) + '').append("")
+
+                }
+
+                if (selectedList[i] == "")
+                    $('#errorval' + (i + 1) + '').text("")
+            }
+
+        }
+
+        function renderGamers(c1) {
+            console.log("In render Gamers: ", c1.Competitionid);
+
+            //get gamers list in specific competition
+            ajaxCall("GET", "../api/Competitions/mark5?CId=" + c1.Competitionid + "&statusval=" + 1, "", getSuccessGamersInC, getErrorGamersInC); //Orgenaizer_Main_Page.html - method SC3
+            $("#exampleModalLongTitle").text(c1.Competitionname);
+
+        }
+
+        function getSuccessGamersInC(data) {
+            console.log(data);
+            $("#modal-body").text('')
+            $("#modal-body").html('<table class="table table-striped" id="partisipantstbl"><tr><th>מספר שחקן</th><th>שם פרטי</th><th>שם משפחה</th><th>כינוי</th><th>דירוג</th><th>ניקוד</th></tr></table>')
+            $("#saverank").hide();
+            var gamersarray = data;
+
+
+            for (let key in gamersarray) {
+                $("#partisipantstbl").append('<tr id="' + key + '"><td>' + key + '</td></tr>')
+                for (var i = 0; i < gamersarray[key].length; i++) {
+
+                    console.log("shir", key, gamersarray[key][i])
+                    $("#" + key + "").append('<td>' + gamersarray[key][i] + '</td>')
+
+                }
+
+            }
+        }
+
+        function getErrorGamersInC(err) {
+            console.log("in ERR: ", err);
+        }
+
+        function redirect() {
+            window.location.href = "Add_New_Competition.html";
+        }
+
+        function sendRanksToManager() {
+            console.log("inSendRanksToManager");
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content-fluid">
+
+        <div class="container">
+
+            <section id="page_title">
+                <h2 class="headh2">אזור אישי</h2>
+                <div class="divdown"></div>
+            </section>
+            <div class="row">
+                <div class="col"></div>
+                <div class="col"></div>
+                <div class="col-3 mb-3">
+                    <div class="buttonadd">
+                        <button type="button" class="btn btn-danger" onclick="redirect()">הגשת תחרות חדשה <i class="bi bi-plus-square"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div id="FCcards">
+                <h3>ניהול תחרויות</h3>
+                <div class="row">
+                    <div class="col-9" id="FutureC"></div>
+                    <div class="col-3" id="mikra">
+                        <p> <i class="bi bi-check-square" style="font-size: 1rem ; color: green"></i> - אושר</p>
+                        <p> <i class="bi bi-hourglass-split" style="font-size: 1rem ;color:yellow"></i> - ממתין לאישור מנהל</p>
+                        <p> <i class="bi bi-x-square" style="font-size: 1rem ;color:red"></i> - נדחה</p>
+                        <div class="loadC">
+                            <button id="loadFCbtn" class="btn btn-outline-secondary">טען עוד</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row" id="AllFCcards">
+
+                <div class="col-9">
+                    <div class="row" id="AllFutureC"></div>
+                </div>
+                <div class="col-3"></div>
+            </div>
+
+            <div id="PCcards">
+                <h3> תחרויות שהסתיימו</h3>
+                <div class="row">
+                    <div class="col-9" id="PastC"></div>
+                    <div class="col-3" id="">
+                        <button id="loadPCbtn" class="btn btn-outline-secondary">טען עוד</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="AllPCcards">
+
+                <div class="col-9">
+                    <div class="row" id="AllPastC"></div>
+                </div>
+                <div class="col-3"></div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="modal-body" class="modal-body">
+                        </div>
+                        <div id='result'></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-dismiss="modal" id="closerank">סגור</button>
+                            <button type="button" class="btn btn-success" id="saverank" onclick="sendRanksToManager()">שלח דירוגים</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer-system">
+
+            <div class="sub-footer">
+                <div class="row">
+
+                    <div class="col" style="text-align:center">
+
+                        <p>לכל תקלה או שאלה על המערכת ניתן לכתוב לנו בדף יצירת קשר - למעבר לעמוד <a href="Contact.html">לחצו כאן</a></p>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>

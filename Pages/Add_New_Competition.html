@@ -1,0 +1,800 @@
+﻿<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../Scripts/GeneralFunctions.js"></script>
+    <script src="../Scripts/ajaxCalls.js"></script>
+    <!--<script src="../Scripts/GeneralFunctions.js"></script>-->
+    <script src="../Scripts/jquery-3.4.1.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="../Style/basic.css" rel="stylesheet" />
+    <link href="../Style/add_new_competition.css" rel="stylesheet" />
+
+
+    <title>&#x202E; הגשת תחרות – ASEI</title>
+    <link rel="icon" href="https://iesa.org.il/wp-content/uploads/2020/04/cropped-favic-32x32.png">
+
+    <script>
+
+        if (localStorage["user_type"] != 2 && localStorage["user_type"] != 1) {
+            location.replace("index.html");
+        }
+
+        var competitionid;
+        var logoURL = '';
+        var bannerURL = '';
+        var imgType = '';
+        var counterimage = 2300;
+        var address = '';
+        var today = getDate();
+
+
+        $(document).ready(function () {
+
+            //Navbar
+
+            if (localStorage["user_type"] == 1) {
+
+                renderNavbar_Manager();
+            }
+            else if (localStorage["user_type"] == 2) {
+
+                renderNavbar_Orgenaizer();
+            }
+
+            buildNav();
+
+            $(document).on("click", "#disconnectBTN", function () {
+
+                localStorage.clear();
+                swal("מבצע התנתקות");
+
+                setTimeout(function () {
+                    location.replace("index.html");
+                }, 2000);
+
+            });
+
+            $(document).on("click", "#connectBTN", function () {
+                location.replace("sign_in.html");
+            });
+            //Navbar
+
+
+
+            GetAllGameCategories();
+
+            document.getElementById("cForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                BeforGetCId();
+            });
+
+            $("#previewC").click(PreviewBuilder);
+
+            $("#logoFile").change(function () {
+                addPreview('_logo');
+            });
+            $("#bannerFile").change(function () {
+                addPreview('_banner');
+            });
+
+            $('input[type=radio][name=radio-online]').change(function () {
+                if (this.id == 'online') {
+                    document.getElementById("addressDIV").innerHTML = '';
+                }
+                else if (this.id == 'offline') {
+                    document.getElementById("addressDIV").innerHTML = '<label>כתובת התחרות:</label>' +
+                        '<input type = "text" class="form-control" placeholder = "במידה ולא אונליין" id = "addressTB"' +
+                        + 'oninvalid="this.setCustomValidity("הכנס כתובת לתחרות")' + 'oninput="this.setCustomValidity("")" required>';
+                }
+            });
+            document.getElementById("ldfrDB").setAttribute("min", today);
+
+            $("#ldfrDB").change(function () {
+                document.getElementById("startdDB").setAttribute("min", $("#ldfrDB").val());
+
+            });
+
+            $("#startdDB").change(function () {
+                document.getElementById("enddDB").setAttribute("min", $("#startdDB").val());
+
+            });
+        });
+
+        function PreviewBuilder() {
+
+            var tradio = $('input[name=radio-type]:checked'); //get competition type (Pro or Amateurs)
+            var ctype = tradio.attr('id');
+            if (ctype == "cPro")
+                ctype = 1;
+            else
+                ctype = 0;
+            var oradio = $('input[name=radio-online]:checked'); //get is online?
+            var conline = oradio.attr('id');
+
+            if (conline == "online") {
+                conline = 1;
+                address = "";
+            }
+
+            else {
+                conline = 0;
+                address = $("#addressTB").val()
+            }
+
+
+            var pradio = $('input[name=radio-payment]:checked'); //get need payment?
+            var cpayment = pradio.attr('id');
+            if (cpayment = "payment")
+                cpayment = 1;
+            else
+                cpayment = 0;
+
+            let p1 = {
+                Competitionname: $("#cnameTB").val(),
+                Isonline: conline,
+                Address1: address,
+                Banner: bannerURL,
+                Logo: logoURL,
+                Prize1: $("#prize1TB").val(),
+                Prize2: $("#prize2TB").val(),
+                Price3: $("#prize3TB").val(),
+                Linkforregistration: $("#urlcommunityTB").val(),
+                Lastdateforregistration: $("#ldfrDB").val(),
+                Body: $("#descriptionTA").val(),
+                Startdate: $("#startdDB").val(),
+                Enddate: $("#enddDB").val(),
+                Startime: $("#starttTB").val(),
+                Endtime: $("#endtTB").val(),
+                Ispro: ctype,
+                Discord: $("#cdiscordTB").val(),
+                Console: $("#consoleDB").val(),
+                Isiesa: 0,
+                Competitionstatus: 'S',
+                Ispayment: cpayment,
+                Startcheckin: $("#checkin1TB").val(),
+                Endcheckin: $("#checkin2TB").val(),
+                Gamecategory: $("#ccategoriesDB option:selected").text()
+            }
+
+            ajaxCall("POST", "../api/Competitions/mark2", JSON.stringify(p1), postSuccessP, postErrorP);
+            window.open("https://localhost:44318/Pages/Competition_Preview.html"); //need to change the URL after publish project
+
+        }
+
+        function postSuccessP(data) {
+            console.log(data)
+        }
+
+        function postErrorP(err) {
+            console.log(err)
+        }
+
+        function postSuccessC(data) {
+            console.log("C Success", data);
+
+
+            var gcID = document.getElementById("ccategoriesDB").value;
+            var cID = competitionid;
+            var oID = JSON.parse(localStorage.getItem("user_info"));
+
+
+            ajaxCall("POST", "../api/Competitions?cID=" + cID + "&gcID=" + gcID + "&oID=" + oID.Userid, "", postSuccessCInG, postErrorCInG)
+
+
+        }
+
+        function postSuccessCInG(data) {
+            console.log(data);
+            swal("התחרות הוגשה בהצלחה! אנא המתן לתשובת מנהל")
+
+            setTimeout(function () {
+                location.replace("Orgenaizer_Main_Page.html");
+            }, 2500);
+
+        }
+
+        function postErrorCInG(err) {
+            console.log("ERR ")
+            console.log(err);
+
+        }
+
+        function postErrorC(err) {
+            console.log(err)
+
+        }
+
+        function BeforGetCId() {
+            getCompetitionId();
+            return false;
+        }
+
+        function getCompetitionId() {
+
+            ajaxCall("GET", "../api/Competitions", "", getSuccessCompetitions, getErrorCompetitions)
+
+        }
+
+        function getSuccessCompetitions(cId) {
+            competitionid = cId
+            console.log("In success competiton: ", competitionid);
+            addBanner(competitionid);
+        }
+
+        function addBanner() {
+
+            var data = new FormData();
+            banner = $("#bannerFile").get(0).files;
+            //logo = $("#logoFile").get(0).files;
+
+            var files = banner;
+
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("CompetitionID", competitionid + "_banner"); //append what ever data you want to send along with the files.
+
+
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../api/FileUpload/mark1",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: routeBanner,
+                error: error
+            });
+
+            return false;
+        }
+
+        function routeBanner(data) {
+            bannerURL = data[0]
+            console.log("In url's: ", bannerURL);
+            addLogo();
+
+            return false;
+        }
+
+        function addLogo() {
+
+            var data = new FormData();
+
+            logo = $("#logoFile").get(0).files;
+
+            var files = logo;
+
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("CompetitionID", competitionid + "_logo"); //append what ever data you want to send along with the files.
+
+
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../api/FileUpload/mark1",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: routeLogo,
+                error: error
+            });
+
+            return false;
+        }
+
+        function routeLogo(data) {
+            logoURL = data[0]
+            console.log("In url's: ", logoURL);
+            CompetitionBuilder();
+            return false;
+        }
+
+        function error(err) {
+            console.log(err);
+
+        }
+
+        function getErrorCompetitions(err) {
+            console.log(err);
+        }
+
+        function CompetitionBuilder() {
+
+            var tradio = $('input[name=radio-type]:checked'); //get competition type (Pro or Amateurs)
+            var kradio = $('input[name=radio-kind]:checked'); //get competition type (Pro or Amateurs)
+            var ckind = kradio.attr('value');
+            var ctype = tradio.attr('id');
+            if (ctype == "cPro")
+                ctype = 1;
+            else
+                ctype = 0;
+
+            var oradio = $('input[name=radio-online]:checked'); //get is online?
+            var conline = oradio.attr('id');
+            if (conline == "online") {
+                conline = 1;
+                address = "";
+            }
+
+            else {
+                conline = 0;
+                address = $("#addressTB").val()
+            }
+
+            var pradio = $('input[name=radio-payment]:checked'); //get need payment?
+            var cpayment = pradio.attr('id');
+            if (cpayment = "payment")
+                cpayment = 1;
+            else
+                cpayment = 0;
+
+            let c1 = {
+                Competitionname: $("#cnameTB").val(),
+                Isonline: conline,
+                Address1: address,
+                Banner: bannerURL,
+                Logo: logoURL,
+                Prize1: $("#prize1TB").val(),
+                Prize2: $("#prize2TB").val(),
+                Price3: $("#prize3TB").val(),
+                Linkforregistration: $("#urlcommunityTB").val(),
+                Lastdateforregistration: $("#ldfrDB").val(),
+                Body: $("#descriptionTA").val(),
+                Startdate: $("#startdDB").val(),
+                Enddate: $("#enddDB").val(),
+                Startime: $("#starttTB").val(),
+                Endtime: $("#endtTB").val(),
+                Ispro: ctype,
+                Discord: $("#cdiscordTB").val(),
+                Console: $("#consoleDB").val(),
+                Isiesa: 0,
+                Competitionstatus: '4',
+                Ispayment: cpayment,
+                Startcheckin: $("#checkin1TB").val(),
+                Endcheckin: $("#checkin2TB").val(),
+                Kind: ckind
+            }
+            console.log("ckind", ckind)
+
+            ajaxCall("POST", "../api/Competitions", JSON.stringify(c1), postSuccessC, postErrorC)
+            return false;
+
+        }
+
+        function GetAllGameCategories() {
+
+            ajaxCall("GET", "../api/GamesCategories", "", getSuccessGamesCategories, getErrorGamesCategories); //(#) Add_Game_Category.html - method MC1
+
+        }
+
+        function getSuccessGamesCategories(GamesCategories) {
+            console.log("GameCategories: ", GamesCategories)
+            strOption = "";
+            for (var i = 0; i < GamesCategories.length; i++) { //Add Games Categories to drop list
+                strOption += ' <option value="' + GamesCategories[i].Categoryid + '">' + GamesCategories[i].Categoryname + '</option> '
+            }
+            $("#ccategoriesDB").append(strOption);
+        }
+
+        function getErrorGamesCategories(err) {
+            console.log(err)
+        }
+
+        //Counter chars in competition descreption (text area)
+        function countChar(val) {
+            var len = val.value.length;
+            if (len >= 1001) {
+                val.value = val.value.substring(0, 1001);
+            } else {
+                str = '';
+                str = "1000/" + (len);
+                $('#charNum').text(str);
+            }
+        };
+
+        function addPreview(img) {
+
+            imgType = img;
+
+            counterimage = counterimage + 1;
+
+            if (counterimage > 2303) { //Security: User Wont be able to upload more then 3 pictures to the server
+                counterimage = 2300;
+            }
+
+            var data = new FormData();
+
+            if (imgType == '_logo') {
+                var files = $("#logoFile").get(0).files;
+            }
+            else { //imgType == _banner
+                var files = $("#bannerFile").get(0).files;
+            }
+
+            // Add the uploaded file to the form data collection
+            if (files.length > 0) {
+                for (f = 0; f < files.length; f++) {
+                    data.append("UploadedImage", files[f]);
+                }
+
+                data.append("CompetitionID", counterimage); //append what ever data you want to send along with the files.
+            }
+
+            // Ajax upload
+            $.ajax({
+                type: "POST",
+                url: "../Api/FileUpload",
+                contentType: false,
+                processData: false,
+                data: data,
+                success: imagePreview,
+                error: error
+            });
+
+            return false;
+        }
+
+        function imagePreview(data) {
+
+            var imgStr = "";
+
+            if (Array.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    imgStr = "<img src='../" + data[i] + "' class='' alt='PreviewImg'/>"; //instead of +=
+                }
+            }
+
+
+            else {
+                imgStr = "<img src='../" + data + "'/>";
+            }
+
+            if (imgType == '_logo') {
+                document.getElementById("logoph").innerHTML = imgStr;
+                logoURL = data[0];
+            }
+            else {
+                document.getElementById("bannerph").innerHTML = imgStr;
+                bannerURL = data[0];
+            }
+
+        }
+
+        function f1() {
+
+        }
+
+
+    </script>
+
+
+</head>
+<body>
+
+    <!-- Section: Header -->
+    <div class="user-nav" id="render-nav1">
+    </div>
+
+    <header class="header">
+        <div class="top-navbar" id="render-nav2">
+        </div>
+    </header>
+    <!-- Section: Header -->
+
+    <div class="nav-gap"></div>
+
+    <!--Section: Content-->
+    <section id="content">
+
+        <div class="container">
+
+            <section id="page_title">
+                <a class="titlelink" href="Orgenaizer_Main_Page.html">אזור אישי </a>
+                <svg style="width: .5em; transform: rotate(180deg); vertical-align: -.17em;" svg-inline--fa fa-angle-right fa-w-8" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>
+                <h2 class="headh2">יצירת תחרות</h2>
+                <div class="divdown"></div>
+            </section>
+
+            <p style="color:red">* תזכורת למארגנים בעניין מגבלות ההכרה:</p>
+            <p style="color:white">בהתאם לנוהל ההכרה בתחרויות, יש לבדוק שהתחרות שאתם מגישים עומדת בקריטריונים הבאים:</p>
+            <p style="color:white"><i class="bi bi-check2-circle" style="font-size: 1.5rem; color: white;"></i>  חוקי התחרות כתובים היטב ויש קישור אליהם בתיאוק התחרות</p>
+            <p style="color:white"><i class="bi bi-check2-circle" style="font-size: 1.5rem; color: white;"></i>  שווי פרסים בתחרות לא עולה על 5,000 ש"ח</p>
+            <p style="color:white"><i class="bi bi-check2-circle" style="font-size: 1.5rem; color: white;"></i>  התחרות אינה משודרת בטלוויזיה</p>
+            <p style="color:white"><i class="bi bi-check2-circle" style="font-size: 1.5rem; color: white;"></i>  התחרות עומדת בכל הקריטריונים של בעלת הזכויות על הכותר</p><br>
+            <h4 style="color:white">הזנת פרטי תחרות</h4><br>
+
+            <form id="cForm" class="was-validated">
+                <div class="row">
+
+                    <!--Right column here: -->
+                    <div class="col">
+                        <div class="mb-3">
+                            <label>כותרת:</label>
+                            <input type="text" class="form-control" placeholder="כותרת תחרות" id="cnameTB" pattern=".{2,100}"
+                                   oninvalid="this.setCustomValidity('עד 100 תווים.')"
+                                   oninput="this.setCustomValidity('')" required>
+                        </div> <!--title -->
+
+                        <div class="mb-3">
+                            <label>קטגוריית משחק:</label><br />
+                            <select name="gamecategories" class="form-select" id="ccategoriesDB" required>
+                                <option />
+                            </select>
+                        </div> <!--game category-->
+
+                        <div class="mb-3">
+                            <label>קונסולה:</label>
+                            <select name="gamecategories" class="form-select" id="consoleDB" required>
+                                <option hidden selected></option>
+                                <option value="PS"> PS</option>
+                                <option value="XBOX"> XBOX</option>
+                                <option value="PC"> PC</option>
+                            </select>
+                        </div> <!--console-->
+
+                        <div class="mb-3">
+                            <label>קישור לאתר התחרות:</label>
+                            <input type="url" class="form-control" placeholder='הכנס כתובת הקהילה כאן' id="urlcommunityTB"
+                                   oninvalid="this.setCustomValidity('הכנס כתובת אתר אינטרנט')"
+                                   oninput="this.setCustomValidity('')" required>
+                        </div> <!--link for register-->
+
+                        <div class="mb-3">
+                            <label>דיסקורד לתחרות:</label>
+                            <input type="url" class="form-control" placeholder='הכנס כתובת דיסקורד לתחרות' id="cdiscordTB"
+                                   oninvalid="this.setCustomValidity('הכנס כתובת דיסקורד לתחרות')"
+                                   oninput="this.setCustomValidity('')">
+                        </div> <!--discord-->
+
+                        <div class="row mb-3">
+                            <label>פרסים:</label>
+                            <div class="col">
+                                <label>מקום ראשון</label>
+                                <input type="text" class="form-control" placeholder="₪" id="prize1TB">
+                            </div>
+
+                            <div class="col">
+                                <label>מקום שני</label>
+                                <input type="text" class="form-control" placeholder="₪" id="prize2TB">
+                            </div>
+
+                            <div class="col">
+                                <label>מקום שלישי</label>
+                                <input type="text" class="form-control" placeholder="₪" id="prize3TB">
+                            </div>
+                        </div> <!--prize-->
+
+                        <div class="row">
+                            <div class="col">
+                                <label>תחרות און ליין:</label>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="online" name="radio-online" required>
+                                    <label class="form-check-label" for="validationFormCheck1">כן</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="offline" name="radio-online" required>
+                                    <label class="form-check-label" for="validationFormCheck2">לא</label>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label>תחרות בתשלום:</label>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="payment" name="radio-payment" required>
+                                    <label class="form-check-label" for="validationFormCheck1">כן</label>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="radio" class="form-check-input" id="free" name="radio-payment" required>
+                                    <label class="form-check-label" for="validationFormCheck2">לא</label>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label>סוג התחרות:</label>
+                                <div class="mb-3">
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cPro" name="radio-type" required>
+                                        <label class="form-check-label" for="validationFormCheck1">מקצועי</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cAma" name="radio-type" required>
+                                        <label class="form-check-label" for="validationFormCheck2">חובבנים</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label>אופי התחרות:</label>
+                                <div class="mb-3">
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cOn" name="radio-kind" value="1" required>
+                                        <label class="form-check-label" for="validationFormCheck1">אונליין</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cCF" name="radio-kind" value="2" required>
+                                        <label class="form-check-label" for="validationFormCheck2">משולב גמר</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="radio" class="form-check-input" id="cCHF" name="radio-kind" value="3" required>
+                                        <label class="form-check-label" for="validationFormCheck3">משולב חצי<br>גמר/אופליין</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!--radio buttons (online, payment, ispro, kind)-->
+
+                        <div class="mb-3" id="addressDIV">
+                        </div> <!--address-->
+
+                        <input type="button" class="btn btn-warning" value="תצוגה מקדימה" id="previewC" />
+
+                    </div>
+
+                    <!--Left column here: -->
+                    <div class="col">
+
+                        <div class="mb-3">
+                            <label>מועד אחרון לרישום:</label>
+                            <input type="date" class="form-control" placeholder='מועד אחרון לרישום' id="ldfrDB"
+                                   oninvalid="this.setCustomValidity('בחר מועד אחרון להרשמה')"
+                                   oninput="this.setCustomValidity('')" required />
+                        </div> <!--last date for registeration-->
+
+                        <div class="mb-3">
+                            <label>תיאור התחרות:</label>
+                            <textarea class="form-control" id="descriptionTA" placeholder="עד 1,000 תווים" onkeyup="countChar(this)"
+                                      oninvalid="this.setCustomValidity('עד 1000 תווים.')"
+                                      oninput="this.setCustomValidity('')" rows="4" required></textarea>
+                            <div id="charNum"></div> <!--this div show how many chars we used in textarea-->
+                        </div> <!--description-->
+
+                        <div class="row">
+
+                            <div style="margin-bottom: 6px;"></div> <!--for row's correct gap-->
+
+                            <label>תאריך ושעת התחלה:</label>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="date" class="form-control" id="startdDB"
+                                           oninvalid="this.setCustomValidity('בחר מועד לתחילת התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="time" class="form-control" id="starttTB"
+                                           oninvalid="this.setCustomValidity('בחר שעה לתחילת התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+                        </div> <!--date and time start-->
+
+                        <div class="row">
+                            <label>תאריך ושעת סיום:</label>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="date" class="form-control" id="enddDB"
+                                           oninvalid="this.setCustomValidity('בחר מועד לסיום התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="mb-3">
+                                    <input type="time" class="form-control" id="endtTB"
+                                           oninvalid="this.setCustomValidity('בחר שעה לסיום התחרות')"
+                                           oninput="this.setCustomValidity('')" required>
+                                </div>
+                            </div>
+                        </div> <!--date and time end-->
+
+                        <div class="row">
+                            <label>צ'ק אין:</label>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>החל מ-</label>
+                                    <input type="time" class="form-control" id="checkin1TB"
+                                           oninvalid="this.setCustomValidity(`בחר שעת צ'ק אין`)"
+                                           oninput="this.setCustomValidity('')">
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>עד-</label>
+                                    <input type="time" class="form-control" id="checkin2TB"
+                                           oninvalid="this.setCustomValidity(`בחר שעת צ'ק אין`)"
+                                           oninput="this.setCustomValidity('')">
+                                </div>
+                            </div>
+                        </div> <!--check in-->
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group" method="post" enctype="multipart/form-data">
+                                    <label for="file">באנר תחרות: </label>
+                                    <br />
+                                    <input type="file" id="bannerFile" name="files" multiple="multiple" required />
+                                    <p class="noteforfiles">הגודל המומלץ לבאנר 970x250</p>
+                                </div>
+                                <div>
+                                    <div class="bannerfilePH" id="bannerph"></div>
+                                </div>
+                            </div> <!--banner-->
+                            <div class="col">
+                                <div class="form-group" method="post" enctype="multipart/form-data" id="formUpload">
+                                    <label for="file">לוגו תחרות:  </label>
+                                    <br />
+                                    <input type="file" id="logoFile" name="files" multiple="multiple" required />
+                                    <p class="noteforfiles">הגודל המומלץ ללוגו 237x168</p>
+                                </div>
+                                <div>
+                                    <div class="mb-3 logofilePH" id="logoph"></div>
+                                </div>
+                            </div> <!--logo-->
+                        </div>
+
+
+
+                        <div class="row" dir="ltr">
+
+                            <div class="col">
+                                <br />
+
+                                <input type="submit" class="btn btn-success" value="שליחת טופס" onsubmit="return false" />
+                                <input type="button" class="btn btn-danger" value="ביטול" onclick="window.close();" /> <!--Ask if he sure?-->
+                            </div>
+                        </div> <!--buttons-->
+
+                    </div>
+                </div>
+            </form>
+
+
+
+        </div>
+    </section>
+    <!--Section: Content-->
+    <!-- Section: Footer -->
+    <section id="site_footer">
+        <div class="footer-system">
+
+            <div class="sub-footer">
+                <div class="row">
+
+                    <div class="col" style="text-align:center">
+
+                        <p>לכל תקלה או שאלה על המערכת ניתן לכתוב לנו בדף יצירת קשר - למעבר לעמוד <a href="Contact.html">לחצו כאן</a></p>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- Section: Footer -->
+
+    <script src="../Scripts/GeneralFunctions.js"></script>
+</body>
+</html>
