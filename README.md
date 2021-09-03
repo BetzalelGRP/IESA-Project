@@ -1,4 +1,4 @@
-# IESA Final Project
+# IESA Project
 
 The system was built for the Israeli Esports Association as part of the Degree Final Project.
 
